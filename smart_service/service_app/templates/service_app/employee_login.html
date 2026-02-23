@@ -1,0 +1,45 @@
+{% extends 'service_app/base.html' %}
+{% block title %}Employee Login - SMART SERVICE{% endblock %}
+{% block extra_css %}
+<style>
+.auth-container { min-height:calc(100vh - 140px);display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--dark),var(--secondary));padding:40px 20px; }
+.auth-card { background:#fff;border-radius:24px;padding:48px 40px;width:100%;max-width:420px;box-shadow:0 30px 80px rgba(0,0,0,0.4);text-align:center; }
+.emp-badge { display:inline-flex;align-items:center;gap:8px;background:#1A1A2E;color:var(--primary);padding:8px 20px;border-radius:30px;font-size:13px;font-weight:700;margin-bottom:16px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="emp-badge"><i class="fas fa-id-badge"></i> EMPLOYEE PORTAL</div>
+        <h2 style="font-size:22px;font-weight:700;color:var(--secondary);margin-bottom:6px;">Employee Login</h2>
+        <p style="color:#999;font-size:14px;margin-bottom:28px;">Enter your Employee ID and registered mobile number</p>
+        {% if error %}
+        <div class="alert alert-error" style="text-align:left;margin-bottom:20px;">
+            <i class="fas fa-exclamation-triangle"></i> Invalid credentials. Please check your Employee ID and Mobile Number.
+        </div>
+        {% endif %}
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group" style="text-align:left">
+                <label><i class="fas fa-id-card"></i> Employee ID</label>
+                <input type="text" name="employee_id" placeholder="e.g. EMP001" required autofocus>
+            </div>
+            <div class="form-group" style="text-align:left">
+                <label><i class="fas fa-mobile-alt"></i> Registered Mobile Number</label>
+                <input type="tel" name="mobile" placeholder="10-digit mobile number" maxlength="10" pattern="[0-9]{10}" required>
+            </div>
+            <button type="submit" class="btn btn-secondary" style="width:100%;border-radius:12px;padding:14px;margin-top:8px;">
+                <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+            </button>
+        </form>
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid #f0f0f0;">
+            <p style="font-size:13px;color:#aaa;">Customer? <a href="{% url 'customer_login' %}" style="color:var(--primary);font-weight:600;">Login here →</a></p>
+        </div>
+        <div style="margin-top:16px;background:#fff8f0;border:1px solid #ffe0c0;border-radius:10px;padding:12px;font-size:12px;color:#888;text-align:left;">
+            <i class="fas fa-info-circle" style="color:var(--primary)"></i>
+            <strong>Note:</strong> Employee credentials are set up by the admin. Contact your manager if you can't login.
+            <br><br><strong>Demo:</strong> Create an employee via <code>/admin/</code> or run the setup script.
+        </div>
+    </div>
+</div>
+{% endblock %}

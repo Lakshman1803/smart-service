@@ -1,0 +1,68 @@
+{% extends 'service_app/base.html' %}
+{% block title %}Customer Login - SMART SERVICE{% endblock %}
+{% block extra_css %}
+<style>
+.auth-container {
+    min-height: calc(100vh - 140px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--dark), var(--secondary));
+    padding: 40px 20px;
+}
+.auth-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+    text-align: center;
+}
+.auth-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+.auth-logo span { color: var(--secondary); }
+.auth-card h2 { font-size: 24px; font-weight: 700; color: var(--secondary); margin-bottom: 8px; }
+.auth-card p.subtitle { color: #999; font-size: 14px; margin-bottom: 32px; }
+.phone-input { display: flex; align-items: center; gap: 0; border: 2px solid #e0e0e0; border-radius: 12px; overflow: hidden; transition: border-color 0.3s; }
+.phone-input:focus-within { border-color: var(--primary); }
+.phone-prefix { padding: 14px 16px; background: #f5f5f5; font-weight: 700; color: #555; font-size: 14px; border-right: 1px solid #e0e0e0; }
+.phone-input input { border: none; border-radius: 0; flex: 1; }
+.phone-input input:focus { border: none; box-shadow: none; }
+.divider { display: flex; align-items: center; margin: 20px 0; gap: 12px; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e0e0e0; }
+.divider span { font-size: 12px; color: #aaa; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-logo">SMART<span>SERVICE</span></div>
+        <h2>Customer Login</h2>
+        <p class="subtitle">Enter your mobile number to receive an OTP</p>
+        <form action="{% url 'send_customer_otp' %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group" style="text-align:left">
+                <label><i class="fas fa-mobile-alt"></i> Mobile Number</label>
+                <div class="phone-input">
+                    <div class="phone-prefix">+91</div>
+                    <input type="tel" name="mobile" placeholder="Enter 10-digit number" maxlength="10" pattern="[0-9]{10}" required autofocus>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;border-radius:12px;padding:14px;">
+                <i class="fas fa-paper-plane"></i> Send OTP
+            </button>
+        </form>
+        <div class="divider"><span>New user?</span></div>
+        <p style="font-size:13px;color:#777;">No registration required! Just enter your mobile number. If you're new, you'll be asked to fill in your details after OTP verification.</p>
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid #f0f0f0;">
+            <p style="font-size:13px;color:#aaa;">Are you an employee? <a href="{% url 'employee_login' %}" style="color:var(--primary);font-weight:600;">Login here →</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

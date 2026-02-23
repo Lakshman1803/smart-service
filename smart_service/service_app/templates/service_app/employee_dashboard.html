@@ -1,0 +1,115 @@
+{% extends 'service_app/base.html' %}
+{% block title %}Employee Dashboard - SMART SERVICE{% endblock %}
+{% block extra_css %}
+<style>
+.dashboard { max-width:1200px;margin:0 auto;padding:40px 20px; }
+.emp-banner { background:linear-gradient(135deg,var(--dark),var(--secondary));border-radius:20px;color:#fff;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:28px; }
+.emp-banner h2 { font-family:'Orbitron',monospace;font-size:20px;color:var(--primary); }
+.emp-banner p { color:#aaa;font-size:13px;margin-top:4px; }
+.stats-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px; }
+.stat-card { background:#fff;border-radius:14px;padding:20px 16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);border-top:4px solid; }
+.stat-card .snum { font-family:'Orbitron',monospace;font-size:26px;font-weight:700; }
+.stat-card .slbl { font-size:12px;color:#999;margin-top:4px;text-transform:uppercase;letter-spacing:1px; }
+.actions-row { display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap; }
+.table-container { background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);overflow:hidden; }
+.table-header { background:var(--secondary);color:#fff;padding:16px 20px;font-weight:700;font-size:15px;display:flex;justify-content:space-between;align-items:center; }
+table { width:100%;border-collapse:collapse; }
+th { background:#f8f8f8;padding:12px 16px;text-align:left;font-size:12px;color:#777;text-transform:uppercase;letter-spacing:0.5px; }
+td { padding:14px 16px;font-size:13px;border-bottom:1px solid #f5f5f5; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#fafafa; }
+.action-btns { display:flex;gap:8px;flex-wrap:wrap; }
+.btn-sm { padding:6px 14px;font-size:12px;border-radius:20px; }
+select.status-sel { border:1px solid #ddd;border-radius:6px;padding:5px 10px;font-size:12px;font-family:'Poppins',sans-serif;cursor:pointer; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <div class="emp-banner">
+        <div>
+            <h2>🔧 Employee Dashboard</h2>
+            <p>{{ employee.name }} | {{ employee.role }} | ID: {{ employee.employee_id }}</p>
+        </div>
+        <a href="{% url 'employee_logout' %}" class="btn btn-danger" style="font-size:13px;padding:10px 20px;">Logout</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        {% with total=services|length %}
+        <div class="stat-card" style="border-color:var(--primary);">
+            <div class="snum" style="color:var(--primary)">{{ total }}</div>
+            <div class="slbl">Total Services</div>
+        </div>
+        {% endwith %}
+        <div class="stat-card" style="border-color:#17a2b8;">
+            <div class="snum" style="color:#17a2b8">{{ services|length }}</div>
+            <div class="slbl">Recent Records</div>
+        </div>
+        <div class="stat-card" style="border-color:var(--success);">
+            <div class="snum" style="color:var(--success)">{{ workers.count }}</div>
+            <div class="slbl">Workers Available</div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-row">
+        <a href="{% url 'add_service_request' %}" class="btn btn-primary"><i class="fas fa-plus-circle"></i> New Service Request</a>
+    </div>
+
+    <!-- Services table -->
+    <div class="table-container">
+        <div class="table-header">
+            <span><i class="fas fa-list"></i> Recent Service Requests</span>
+        </div>
+        <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tracking ID</th>
+                    <th>Customer</th>
+                    <th>Vehicle</th>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for svc in services %}
+                <tr>
+                    <td><strong style="color:var(--primary)">{{ svc.tracking_id }}</strong></td>
+                    <td>{{ svc.customer.name }}<br><small style="color:#aaa">{{ svc.customer.mobile }}</small></td>
+                    <td>{{ svc.vehicle.vehicle_number }}<br><small style="color:#aaa">{{ svc.vehicle.brand }}</small></td>
+                    <td>{{ svc.get_service_type_display }}</td>
+                    <td>
+                        <span class="badge badge-{{ svc.status|lower }}">{{ svc.get_status_display }}</span>
+                    </td>
+                    <td>₹{{ svc.estimated_amount }}</td>
+                    <td>{{ svc.created_at|date:"d M" }}</td>
+                    <td>
+                        <div class="action-btns">
+                            <a href="{% url 'assign_work' svc.id %}" class="btn btn-secondary btn-sm">Assign</a>
+                            {% if svc.status == 'COMPLETED' or svc.status == 'IN_PROGRESS' %}
+                            <a href="{% url 'process_payment' svc.id %}" class="btn btn-success btn-sm">Payment</a>
+                            {% endif %}
+                            <form method="POST" action="{% url 'update_service_status' svc.id %}" style="display:inline">
+                                {% csrf_token %}
+                                <select name="status" class="status-sel" onchange="this.form.submit()">
+                                    {% for val, label in svc.STATUS_CHOICES %}
+                                    <option value="{{ val }}" {% if svc.status == val %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" style="text-align:center;color:#aaa;padding:40px;">No services yet. Click "New Service Request" to add one.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

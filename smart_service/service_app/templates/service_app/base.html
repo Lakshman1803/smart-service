@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SMART SERVICE{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B00;
+            --secondary: #1A1A2E;
+            --accent: #E94560;
+            --dark: #0F0F1A;
+            --light: #F5F5F5;
+            --success: #00C853;
+            --warning: #FFD600;
+            --text: #333;
+            --card-bg: #fff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--light); color: var(--text); }
+
+        /* Navbar */
+        nav {
+            background: linear-gradient(135deg, var(--dark) 0%, var(--secondary) 100%);
+            padding: 0 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .nav-brand {
+            font-family: 'Orbitron', monospace;
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--primary);
+            text-decoration: none;
+            letter-spacing: 2px;
+        }
+        .nav-brand span { color: #fff; }
+        .nav-links { display: flex; gap: 8px; align-items: center; }
+        .nav-links a {
+            color: #ccc;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            background: var(--primary);
+            color: #fff;
+        }
+        .nav-btn {
+            background: var(--accent) !important;
+            color: #fff !important;
+        }
+
+        /* Messages */
+        .messages { padding: 0 40px; margin-top: 10px; }
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .alert-success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+        .alert-error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+        .alert-info { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
+        .alert-warning { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, var(--dark), var(--secondary));
+            color: #aaa;
+            text-align: center;
+            padding: 30px;
+            margin-top: 60px;
+        }
+        footer strong { color: var(--primary); font-family: 'Orbitron', monospace; }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: #e05e00; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,107,0,0.3); }
+        .btn-secondary { background: var(--secondary); color: #fff; }
+        .btn-secondary:hover { background: #2a2a4a; transform: translateY(-2px); }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-danger { background: var(--accent); color: #fff; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: #fff; }
+
+        /* Page header */
+        .page-header {
+            background: linear-gradient(135deg, var(--dark), var(--secondary));
+            color: #fff;
+            padding: 50px 40px;
+            text-align: center;
+        }
+        .page-header h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 36px;
+            color: var(--primary);
+        }
+        .page-header p { color: #ccc; margin-top: 8px; }
+
+        /* Cards */
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        /* Status badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-accepted { background: #d1ecf1; color: #0c5460; }
+        .badge-in_progress { background: #cce5ff; color: #004085; }
+        .badge-completed { background: #d4edda; color: #155724; }
+        .badge-delivered { background: #d4edda; color: #155724; }
+        .badge-otp_verified { background: #e2d9f3; color: #4a235a; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+        label { display: block; font-weight: 600; margin-bottom: 6px; color: #444; font-size: 13px; }
+        .form-group { margin-bottom: 20px; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav>
+        <a href="{% url 'home' %}" class="nav-brand">SMART<span> SERVICE</span></a>
+        <div class="nav-links">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'track_service' %}">Track Service</a>
+            <a href="{% url 'contact' %}">Contact Us</a>
+            {% if request.session.customer_id %}
+                <a href="{% url 'customer_dashboard' %}">My Services</a>
+                <a href="{% url 'customer_logout' %}" class="nav-btn">Logout</a>
+            {% elif request.session.employee_id %}
+                <a href="{% url 'employee_dashboard' %}">Dashboard</a>
+                <a href="{% url 'employee_logout' %}" class="nav-btn">Logout</a>
+            {% else %}
+                <a href="{% url 'customer_login' %}">Customer Login</a>
+                <a href="{% url 'employee_login' %}" class="nav-btn">Employee Login</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <i class="fas fa-info-circle"></i> {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+    <footer>
+        <p>&copy; 2024 <strong>SMART SERVICE</strong> — Your Trusted Vehicle Service Partner | Hyderabad, Telangana</p>
+        <p style="margin-top:8px;font-size:12px;">📞 +91 98765 43210 | ✉ support@smartservice.in</p>
+    </footer>
+</body>
+</html>

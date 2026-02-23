@@ -1,0 +1,49 @@
+{% extends 'service_app/base.html' %}
+{% block title %}404 - Page Not Found | SMART SERVICE{% endblock %}
+{% block extra_css %}
+<style>
+.error-container {
+    min-height: calc(100vh - 140px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--dark), var(--secondary));
+    text-align: center;
+    padding: 40px 20px;
+}
+.error-card { max-width: 500px; }
+.error-num {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(80px, 20vw, 150px);
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+}
+.error-title { font-family: 'Orbitron', monospace; font-size: 22px; color: #fff; margin-bottom: 12px; }
+.error-msg { color: #888; font-size: 15px; line-height: 1.7; margin-bottom: 32px; }
+.car-animation { font-size: 60px; display: block; margin-bottom: 20px; animation: drive 3s linear infinite; }
+@keyframes drive { 0%,100%{transform:translateX(-10px);} 50%{transform:translateX(10px);} }
+</style>
+{% endblock %}
+{% block content %}
+<div class="error-container">
+    <div class="error-card">
+        <span class="car-animation">🚗</span>
+        <div class="error-num">404</div>
+        <div class="error-title">Wrong Turn!</div>
+        <p class="error-msg">
+            Looks like this page took a wrong turn and got lost. Don't worry — our mechanics are on it.
+            {% if request.path %}
+            <br><small style="color:#555;font-size:13px;font-family:monospace;">{{ request.path }}</small>
+            {% endif %}
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <a href="{% url 'home' %}" class="btn btn-primary"><i class="fas fa-home"></i> Go Home</a>
+            <a href="{% url 'track_service' %}" class="btn btn-outline" style="border-color:#fff;color:#fff;"><i class="fas fa-search"></i> Track Service</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends 'service_app/base.html' %}
+{% block title %}Assign Work - SMART SERVICE{% endblock %}
+{% block extra_css %}
+<style>
+.page-wrap { max-width:900px;margin:40px auto;padding:0 20px; }
+.info-grid { display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px; }
+@media(max-width:600px){.info-grid{grid-template-columns:1fr;}}
+.info-card { background:#fff;border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+.info-card h3 { font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--primary);margin-bottom:16px;font-weight:700; }
+.info-row { display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px; }
+.info-row:last-child { border-bottom:none; }
+.info-row .label { color:#999;font-weight:500; }
+.info-row .value { color:#333;font-weight:600;text-align:right; }
+.worker-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin:16px 0; }
+.worker-card {
+    border:2px solid #e0e0e0;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;
+}
+.worker-card:hover,.worker-card.selected { border-color:var(--primary);background:rgba(255,107,0,0.05); }
+.worker-card input[type=radio] { display:none; }
+.worker-avatar { width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),#3a3a6a);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;margin:0 auto 8px; }
+.worker-card .wname { font-size:13px;font-weight:600;color:var(--secondary); }
+.worker-card .wspec { font-size:11px;color:#aaa;margin-top:2px; }
+.assign-table { width:100%;border-collapse:collapse; }
+.assign-table th { background:#f8f8f8;padding:10px 14px;text-align:left;font-size:12px;color:#777;text-transform:uppercase; }
+.assign-table td { padding:12px 14px;font-size:13px;border-bottom:1px solid #f5f5f5; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-wrap">
+    <div style="margin-bottom:24px;">
+        <a href="{% url 'employee_dashboard' %}" style="color:var(--primary);text-decoration:none;font-size:14px;"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        <h2 style="font-family:'Orbitron',monospace;font-size:22px;color:var(--secondary);margin-top:12px;">Assign Work</h2>
+        <p style="color:#999;font-size:14px;">Service: <strong style="color:var(--primary)">{{ service.tracking_id }}</strong></p>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-card">
+            <h3><i class="fas fa-user"></i> Customer</h3>
+            <div class="info-row"><span class="label">Name</span><span class="value">{{ service.customer.name }}</span></div>
+            <div class="info-row"><span class="label">Mobile</span><span class="value">{{ service.customer.mobile }}</span></div>
+        </div>
+        <div class="info-card">
+            <h3><i class="fas fa-car"></i> Vehicle</h3>
+            <div class="info-row"><span class="label">Number</span><span class="value">{{ service.vehicle.vehicle_number }}</span></div>
+            <div class="info-row"><span class="label">Type</span><span class="value">{{ service.vehicle.brand }} {{ service.vehicle.model }}</span></div>
+            <div class="info-row"><span class="label">Service</span><span class="value">{{ service.get_service_type_display }}</span></div>
+        </div>
+    </div>
+
+    <!-- Assign form -->
+    <div class="info-card" style="margin-bottom:24px;">
+        <h3><i class="fas fa-hard-hat"></i> Assign Worker</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <p style="font-size:13px;color:#777;margin-bottom:16px;">Select a worker and describe the task:</p>
+            <div class="worker-grid">
+                {% for worker in workers %}
+                <label class="worker-card" id="wc{{ worker.id }}" onclick="selectWorker({{ worker.id }})">
+                    <input type="radio" name="worker_id" value="{{ worker.id }}" required>
+                    <div class="worker-avatar">{{ worker.name|first }}</div>
+                    <div class="wname">{{ worker.name }}</div>
+                    <div class="wspec">{{ worker.specialization }}</div>
+                </label>
+                {% endfor %}
+            </div>
+            <div class="form-group" style="margin-top:16px;">
+                <label>Task Description *</label>
+                <textarea name="task_description" rows="3" placeholder="Describe the exact task to perform..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-user-check"></i> Assign Work</button>
+        </form>
+    </div>
+
+    <!-- Existing assignments -->
+    {% if assignments %}
+    <div class="info-card">
+        <h3><i class="fas fa-tasks"></i> Assigned Tasks</h3>
+        <table class="assign-table">
+            <thead>
+                <tr><th>Worker</th><th>Task</th><th>Assigned At</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                {% for a in assignments %}
+                <tr>
+                    <td><strong>{{ a.worker.name }}</strong><br><small style="color:#aaa">{{ a.worker.specialization }}</small></td>
+                    <td>{{ a.task_description }}</td>
+                    <td>{{ a.assigned_at|date:"d M, h:i A" }}</td>
+                    <td>{% if a.is_completed %}<span class="badge badge-completed">Done</span>{% else %}<span class="badge badge-in_progress">In Progress</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+<script>
+function selectWorker(id) {
+    document.querySelectorAll('.worker-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('wc'+id).classList.add('selected');
+    document.getElementById('wc'+id).querySelector('input').checked = true;
+}
+</script>
+{% endblock %}

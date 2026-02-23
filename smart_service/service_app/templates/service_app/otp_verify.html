@@ -1,0 +1,95 @@
+{% extends 'service_app/base.html' %}
+{% block title %}Verify OTP - SMART SERVICE{% endblock %}
+{% block extra_css %}
+<style>
+.auth-container {
+    min-height: calc(100vh - 140px);
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--dark), var(--secondary));
+    padding: 40px 20px;
+}
+.auth-card {
+    background: #fff; border-radius: 24px; padding: 48px 40px;
+    width: 100%; max-width: 420px; box-shadow: 0 30px 80px rgba(0,0,0,0.4); text-align: center;
+}
+.otp-inputs { display: flex; gap: 12px; justify-content: center; margin: 24px 0; }
+.otp-inputs input {
+    width: 50px; height: 56px; text-align: center; font-size: 22px; font-weight: 700;
+    border: 2px solid #e0e0e0; border-radius: 12px; padding: 0;
+}
+.otp-inputs input:focus { border-color: var(--primary); }
+.resend-timer { font-size: 13px; color: #999; margin-top: 12px; }
+#resendBtn { display: none; background: none; border: none; color: var(--primary); cursor: pointer; font-weight: 600; font-family: 'Poppins', sans-serif; font-size: 13px; }
+.mobile-show { font-size: 18px; font-weight: 700; color: var(--secondary); letter-spacing: 2px; margin: 12px 0; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div style="font-size:50px;margin-bottom:16px;">📱</div>
+        <h2 style="font-size:22px;font-weight:700;color:var(--secondary);">Verify OTP</h2>
+        <p style="color:#999;font-size:14px;">OTP sent to</p>
+        <div class="mobile-show">+91 {{ mobile }}</div>
+        {% if employee_mode %}
+        <p style="font-size:13px;color:#e94560;background:#fdf0f0;padding:10px;border-radius:8px;">
+            ⚠️ Customer must enter this OTP on the terminal/device to accept the service.
+        </p>
+        {% endif %}
+
+        <form action="{% if employee_mode %}{% url 'verify_vehicle_otp' %}{% else %}{% url 'verify_customer_otp' %}{% endif %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="purpose" value="{{ purpose }}">
+            <div class="otp-inputs">
+                <input type="text" maxlength="1" id="d1" oninput="moveNext(this,'d2')" onkeydown="moveBack(event,this,null)">
+                <input type="text" maxlength="1" id="d2" oninput="moveNext(this,'d3')" onkeydown="moveBack(event,this,'d1')">
+                <input type="text" maxlength="1" id="d3" oninput="moveNext(this,'d4')" onkeydown="moveBack(event,this,'d2')">
+                <input type="text" maxlength="1" id="d4" oninput="moveNext(this,'d5')" onkeydown="moveBack(event,this,'d3')">
+                <input type="text" maxlength="1" id="d5" oninput="moveNext(this,'d6')" onkeydown="moveBack(event,this,'d4')">
+                <input type="text" maxlength="1" id="d6" oninput="combineOtp()" onkeydown="moveBack(event,this,'d5')">
+            </div>
+            <input type="hidden" name="otp" id="otpHidden">
+            <button type="submit" class="btn btn-primary" style="width:100%;border-radius:12px;padding:14px;" id="verifyBtn" disabled>
+                <i class="fas fa-check-circle"></i> Verify OTP
+            </button>
+        </form>
+
+        <div class="resend-timer">
+            Resend OTP in <span id="timer">02:00</span>
+            <button id="resendBtn" onclick="resendOtp()">Resend OTP</button>
+        </div>
+        <p style="font-size:12px;color:#bbb;margin-top:16px;">
+            <i class="fas fa-info-circle"></i>
+            In development mode, OTP is printed in the terminal/console.
+        </p>
+    </div>
+</div>
+<script>
+function moveNext(el, nextId) {
+    if (el.value && nextId) document.getElementById(nextId).focus();
+    combineOtp();
+}
+function moveBack(e, el, prevId) {
+    if (e.key === 'Backspace' && !el.value && prevId) document.getElementById(prevId).focus();
+}
+function combineOtp() {
+    const digits = ['d1','d2','d3','d4','d5','d6'].map(id => document.getElementById(id).value).join('');
+    document.getElementById('otpHidden').value = digits;
+    document.getElementById('verifyBtn').disabled = digits.length < 6;
+}
+// Timer
+let seconds = 120;
+const timerEl = document.getElementById('timer');
+const resendBtn = document.getElementById('resendBtn');
+const interval = setInterval(() => {
+    seconds--;
+    const m = Math.floor(seconds/60).toString().padStart(2,'0');
+    const s = (seconds%60).toString().padStart(2,'0');
+    timerEl.textContent = `${m}:${s}`;
+    if (seconds <= 0) { clearInterval(interval); timerEl.style.display='none'; resendBtn.style.display='inline'; }
+}, 1000);
+function resendOtp() {
+    fetch('{% url "send_customer_otp" %}', {method:'POST', headers:{'X-CSRFToken':'{{ csrf_token }}','Content-Type':'application/x-www-form-urlencoded'}, body:'mobile={{ mobile }}'});
+    alert('New OTP sent!'); location.reload();
+}
+</script>
+{% endblock %}

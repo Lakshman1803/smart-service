@@ -1,0 +1,60 @@
+{% extends 'service_app/base.html' %}
+{% block title %}Contact Us - SMART SERVICE{% endblock %}
+{% block extra_css %}
+<style>
+.contact-wrap{max-width:900px;margin:0 auto;padding:40px 20px;}
+.contact-layout{display:grid;grid-template-columns:1fr 1.5fr;gap:30px;margin-top:30px;}
+@media(max-width:640px){.contact-layout{grid-template-columns:1fr;}}
+.info-card{background:linear-gradient(135deg,var(--dark),var(--secondary));border-radius:20px;padding:36px;color:#fff;}
+.info-card h3{font-family:'Orbitron',monospace;color:var(--primary);font-size:18px;margin-bottom:24px;}
+.info-item{display:flex;gap:16px;margin-bottom:24px;align-items:flex-start;}
+.info-item-icon{width:44px;height:44px;background:rgba(255,107,0,0.15);border:1px solid rgba(255,107,0,0.3);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.info-item h4{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px;}
+.info-item p{font-size:13px;color:#aaa;line-height:1.6;}
+.form-card{background:#fff;border-radius:20px;padding:36px;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
+.form-card h3{font-family:'Orbitron',monospace;color:var(--secondary);font-size:18px;margin-bottom:24px;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="contact-wrap">
+    <div class="page-header" style="border-radius:20px;margin-bottom:10px;">
+        <h1><i class="fas fa-headset"></i> Contact Us</h1>
+        <p>We're here to help. Reach out to us anytime!</p>
+    </div>
+    <div class="contact-layout">
+        <div class="info-card">
+            <h3>Get In Touch</h3>
+            <div class="info-item">
+                <div class="info-item-icon"><i class="fas fa-phone-alt" style="color:var(--primary)"></i></div>
+                <div><h4>Call Us</h4><p>+91 98765 43210<br>+91 98765 43211</p></div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-icon"><i class="fas fa-envelope" style="color:var(--primary)"></i></div>
+                <div><h4>Email</h4><p>support@smartservice.in<br>info@smartservice.in</p></div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-icon"><i class="fas fa-map-marker-alt" style="color:var(--primary)"></i></div>
+                <div><h4>Location</h4><p>Plot 42, Auto Nagar<br>Hyderabad, Telangana 500070</p></div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-icon"><i class="fas fa-clock" style="color:var(--primary)"></i></div>
+                <div><h4>Working Hours</h4><p>Mon–Sat: 8AM – 8PM<br>Sunday: 9AM – 2PM</p></div>
+            </div>
+        </div>
+        <div class="form-card">
+            <h3>Send a Message</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group"><label>Your Name</label><input type="text" name="name" placeholder="Full name" required></div>
+                    <div class="form-group"><label>Mobile</label><input type="tel" name="mobile" placeholder="10-digit" maxlength="10"></div>
+                </div>
+                <div class="form-group"><label>Email</label><input type="email" name="email" placeholder="your@email.com"></div>
+                <div class="form-group"><label>Subject</label><input type="text" name="subject" placeholder="How can we help?" required></div>
+                <div class="form-group"><label>Message</label><textarea name="message" rows="4" placeholder="Describe your issue or query..." required></textarea></div>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send Message</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'service_app/base.html' %}
+{% block title %}My Services - SMART SERVICE{% endblock %}
+{% block extra_css %}
+<style>
+.dashboard { max-width:1100px;margin:0 auto;padding:40px 20px; }
+.welcome-banner {
+    background: linear-gradient(135deg,var(--secondary),#16213E);
+    border-radius:20px;color:#fff;padding:32px;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+    margin-bottom:30px;
+}
+.welcome-banner h2 { font-family:'Orbitron',monospace;font-size:22px;color:var(--primary); }
+.welcome-banner p { color:#aaa;margin-top:4px;font-size:14px; }
+.stats-row { display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:30px; }
+.stat-box { background:#fff;border-radius:14px;padding:20px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+.stat-box .num { font-family:'Orbitron',monospace;font-size:28px;color:var(--primary);font-weight:700; }
+.stat-box .lbl { font-size:12px;color:#999;text-transform:uppercase;letter-spacing:1px;margin-top:4px; }
+.section-head { display:flex;justify-content:space-between;align-items:center;margin-bottom:20px; }
+.section-head h3 { font-size:18px;font-weight:700;color:var(--secondary); }
+.service-table { width:100%;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);overflow:hidden; }
+.service-table th { background:var(--secondary);color:#fff;padding:14px 16px;text-align:left;font-size:13px; }
+.service-table td { padding:14px 16px;font-size:13px;border-bottom:1px solid #f5f5f5; }
+.service-table tr:last-child td { border-bottom:none; }
+.service-table tr:hover td { background:#fafafa; }
+.track-link { color:var(--primary);font-weight:600;text-decoration:none;font-size:12px; }
+.notif-card { background:#fff3cd;border:1px solid #ffc107;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <div class="welcome-banner">
+        <div>
+            <h2>👋 Welcome, {{ customer.name }}</h2>
+            <p>Mobile: {{ customer.mobile }} | Member since {{ customer.created_at|date:"M Y" }}</p>
+        </div>
+        <a href="{% url 'customer_logout' %}" class="btn btn-danger" style="font-size:13px;padding:10px 20px;">Logout</a>
+    </div>
+
+    {% if notifications %}
+    <div style="margin-bottom:24px;">
+        <h3 style="margin-bottom:12px;"><i class="fas fa-bell" style="color:var(--primary)"></i> New Notifications</h3>
+        {% for notif in notifications %}
+        <div class="notif-card">
+            <span style="font-size:20px;">🔔</span>
+            <div>
+                <p style="font-size:14px;font-weight:500;">{{ notif.message }}</p>
+                <p style="font-size:11px;color:#888;margin-top:4px;">{{ notif.created_at|date:"d M Y, h:i A" }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="stats-row">
+        <div class="stat-box"><div class="num">{{ services.count }}</div><div class="lbl">Total Services</div></div>
+        <div class="stat-box"><div class="num">{{ services|length }}</div><div class="lbl">In Records</div></div>
+        <div class="stat-box"><div class="num">{{ customer.mobile }}</div><div class="lbl" style="font-size:10px;">Mobile</div></div>
+    </div>
+
+    <div class="section-head">
+        <h3><i class="fas fa-history" style="color:var(--primary)"></i> Service History</h3>
+    </div>
+
+    {% if services %}
+    <div style="overflow-x:auto;">
+        <table class="service-table">
+            <thead>
+                <tr>
+                    <th>Tracking ID</th>
+                    <th>Vehicle</th>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for svc in services %}
+                <tr>
+                    <td><strong>{{ svc.tracking_id }}</strong></td>
+                    <td>{{ svc.vehicle.vehicle_number }}<br><small style="color:#888">{{ svc.vehicle.brand }} {{ svc.vehicle.model }}</small></td>
+                    <td>{{ svc.get_service_type_display }}</td>
+                    <td><span class="badge badge-{{ svc.status|lower }}">{{ svc.get_status_display }}</span></td>
+                    <td>{{ svc.created_at|date:"d M Y" }}</td>
+                    <td>₹{{ svc.estimated_amount }}</td>
+                    <td><a href="{% url 'service_detail' svc.tracking_id %}" class="track-link">Track →</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="background:#fff;border-radius:16px;padding:60px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+        <div style="font-size:50px;margin-bottom:16px;">🔧</div>
+        <h3 style="color:#aaa;">No services yet</h3>
+        <p style="color:#bbb;margin-top:8px;font-size:14px;">Your service history will appear here once you bring your vehicle in.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

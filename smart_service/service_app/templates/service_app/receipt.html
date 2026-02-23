@@ -1,0 +1,75 @@
+{% extends 'service_app/base.html' %}
+{% block title %}Receipt {{ payment.receipt_number }} - SMART SERVICE{% endblock %}
+{% block extra_css %}
+<style>
+.receipt-wrap { max-width:600px;margin:40px auto;padding:0 20px; }
+.receipt-card {
+    background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 30px rgba(0,0,0,0.12);
+}
+.receipt-header {
+    background: linear-gradient(135deg,var(--dark),var(--secondary));
+    color:#fff;padding:32px;text-align:center;
+}
+.receipt-header .brand { font-family:'Orbitron',monospace;font-size:24px;color:var(--primary);font-weight:900; }
+.receipt-header .receipt-num { font-size:13px;color:#aaa;margin-top:4px; }
+.receipt-header .paid-stamp {
+    display:inline-block;border:3px solid var(--success);color:var(--success);
+    padding:6px 20px;border-radius:6px;font-weight:700;font-size:18px;
+    margin-top:16px;letter-spacing:4px;transform:rotate(-5deg);
+}
+.receipt-body { padding:32px; }
+.receipt-row { display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px; }
+.receipt-row:last-child { border-bottom:none; }
+.receipt-row .rlabel { color:#888; }
+.receipt-row .rval { font-weight:600;color:#333; }
+.receipt-total { background:#f8f0ff;border-radius:12px;padding:16px 20px;margin:20px 0; }
+.receipt-total .big-amount { font-family:'Orbitron',monospace;font-size:32px;color:var(--primary);font-weight:700; }
+.receipt-footer { text-align:center;padding:20px 32px 32px;border-top:1px dashed #eee; }
+.print-btn { background:var(--secondary);color:#fff;border:none;padding:12px 30px;border-radius:30px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;margin-right:10px; }
+@media print { .print-btn,.btn,.nav-links,footer { display:none!important; } nav { print-color-adjust:exact; } }
+</style>
+{% endblock %}
+{% block content %}
+<div class="receipt-wrap">
+    <div style="margin-bottom:20px;display:flex;gap:12px;">
+        <a href="{% url 'employee_dashboard' %}" class="btn btn-outline" style="font-size:13px;padding:8px 18px;"><i class="fas fa-arrow-left"></i> Dashboard</a>
+        <button onclick="window.print()" class="print-btn"><i class="fas fa-print"></i> Print Receipt</button>
+    </div>
+
+    <div class="receipt-card">
+        <div class="receipt-header">
+            <div class="brand">SMART SERVICE</div>
+            <div style="font-size:13px;color:#aaa;margin-top:4px;">Auto Nagar, Hyderabad | +91 98765 43210</div>
+            <div class="receipt-num">Receipt No: {{ payment.receipt_number }}</div>
+            <div class="paid-stamp">PAID ✓</div>
+        </div>
+
+        <div class="receipt-body">
+            <div class="receipt-row"><span class="rlabel">Date & Time</span><span class="rval">{{ payment.paid_at|date:"d M Y, h:i A" }}</span></div>
+            <div class="receipt-row"><span class="rlabel">Customer Name</span><span class="rval">{{ payment.service_request.customer.name }}</span></div>
+            <div class="receipt-row"><span class="rlabel">Mobile</span><span class="rval">{{ payment.service_request.customer.mobile }}</span></div>
+            <div class="receipt-row"><span class="rlabel">Vehicle Number</span><span class="rval">{{ payment.service_request.vehicle.vehicle_number }}</span></div>
+            <div class="receipt-row"><span class="rlabel">Vehicle</span><span class="rval">{{ payment.service_request.vehicle.brand }} {{ payment.service_request.vehicle.model }}</span></div>
+            <div class="receipt-row"><span class="rlabel">Service</span><span class="rval">{{ payment.service_request.get_service_type_display }}</span></div>
+            <div class="receipt-row"><span class="rlabel">Tracking ID</span><span class="rval" style="color:var(--primary)">{{ payment.service_request.tracking_id }}</span></div>
+            <div class="receipt-row"><span class="rlabel">Payment Method</span><span class="rval">{{ payment.get_method_display }}</span></div>
+            {% if payment.transaction_id %}
+            <div class="receipt-row"><span class="rlabel">Transaction ID</span><span class="rval">{{ payment.transaction_id }}</span></div>
+            {% endif %}
+
+            <div class="receipt-total">
+                <div style="font-size:13px;color:#888;margin-bottom:6px;">Total Amount Paid</div>
+                <div class="big-amount">₹{{ payment.amount }}</div>
+            </div>
+
+            <div style="background:#d4edda;border-radius:12px;padding:14px 20px;font-size:13px;color:#155724;">
+                <i class="fas fa-check-circle"></i> Payment received successfully. Thank you for choosing <strong>Smart Service</strong>!
+            </div>
+        </div>
+
+        <div class="receipt-footer">
+            <p style="font-size:12px;color:#aaa;">This is a computer-generated receipt. For any queries, contact us at support@smartservice.in</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

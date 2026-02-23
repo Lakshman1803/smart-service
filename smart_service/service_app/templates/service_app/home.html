@@ -1,0 +1,535 @@
+{% extends 'service_app/base.html' %}
+{% block title %}SMART SERVICE - Your Trusted Vehicle Service Center{% endblock %}
+{% block extra_css %}
+<style>
+    /* Hero */
+    .hero {
+        background: linear-gradient(135deg, var(--dark) 0%, var(--secondary) 50%, #16213E 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    .hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at center, rgba(255,107,0,0.15) 0%, transparent 70%);
+    }
+    .hero-content { position: relative; z-index: 2; }
+    .hero-badge {
+        display: inline-block;
+        background: rgba(255,107,0,0.2);
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        padding: 6px 20px;
+        border-radius: 30px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+    }
+    .hero h1 {
+        font-family: 'Orbitron', monospace;
+        font-size: clamp(40px, 8vw, 90px);
+        font-weight: 900;
+        color: #fff;
+        line-height: 1;
+        margin-bottom: 10px;
+    }
+    .hero h1 span { color: var(--primary); }
+    .hero-caption {
+        font-size: clamp(18px, 3vw, 28px);
+        color: #aaa;
+        font-weight: 300;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        margin-bottom: 30px;
+    }
+    .hero p { font-size: 16px; color: #888; max-width: 550px; margin: 0 auto 40px; line-height: 1.8; }
+    .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .hero-scroll {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #666;
+        font-size: 12px;
+        text-align: center;
+        animation: bounce 2s infinite;
+    }
+    @keyframes bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-10px); } }
+
+    /* Stats bar */
+    .stats-bar {
+        background: var(--primary);
+        display: flex;
+        justify-content: space-around;
+        padding: 20px 40px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .stat-item { text-align: center; color: #fff; }
+    .stat-item .num { font-family: 'Orbitron', monospace; font-size: 28px; font-weight: 700; }
+    .stat-item .lbl { font-size: 12px; opacity: 0.85; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Services section */
+    .section { padding: 80px 40px; }
+    .section-title { text-align: center; margin-bottom: 50px; }
+    .section-title h2 {
+        font-family: 'Orbitron', monospace;
+        font-size: 32px;
+        color: var(--secondary);
+        position: relative;
+        display: inline-block;
+    }
+    .section-title h2::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background: var(--primary);
+        border-radius: 2px;
+    }
+    .section-title p { color: #777; margin-top: 20px; font-size: 15px; }
+
+    /* Service cards */
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .service-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 32px 24px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        transition: all 0.3s;
+        border: 2px solid transparent;
+        cursor: default;
+    }
+    .service-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(255,107,0,0.15);
+    }
+    .service-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 28px;
+        color: #fff;
+    }
+    .service-card h3 { font-size: 16px; font-weight: 700; color: var(--secondary); margin-bottom: 8px; }
+    .service-card p { font-size: 13px; color: #777; line-height: 1.6; }
+
+    /* Vehicle section */
+    .vehicles-section { background: linear-gradient(135deg, var(--dark), var(--secondary)); }
+    .vehicles-section .section-title h2 { color: #fff; }
+    .vehicles-section .section-title p { color: #aaa; }
+    .vehicle-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+    }
+    .vehicle-tab {
+        padding: 10px 28px;
+        border-radius: 30px;
+        border: 2px solid #444;
+        background: transparent;
+        color: #aaa;
+        cursor: pointer;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .vehicle-tab.active, .vehicle-tab:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+    }
+    .vehicles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .vehicle-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+    .vehicle-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(255,107,0,0.2);
+    }
+    .vehicle-img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        background: #1a1a2e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+    }
+    .vehicle-img img { width: 100%; height: 100%; object-fit: cover; }
+    .vehicle-info { padding: 16px; }
+    .vehicle-type-badge {
+        display: inline-block;
+        background: rgba(255,107,0,0.2);
+        color: var(--primary);
+        border: 1px solid var(--primary);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .vehicle-info h3 { color: #fff; margin-top: 8px; font-size: 15px; }
+    .vehicle-info p { color: #888; font-size: 12px; margin-top: 4px; }
+
+    /* Track section */
+    .track-section {
+        background: linear-gradient(135deg, var(--primary), #FF8C00);
+        padding: 60px 40px;
+        text-align: center;
+    }
+    .track-section h2 { font-family: 'Orbitron', monospace; font-size: 28px; color: #fff; margin-bottom: 10px; }
+    .track-section p { color: rgba(255,255,255,0.85); margin-bottom: 30px; }
+    .track-form { display: flex; max-width: 500px; margin: 0 auto; gap: 12px; flex-wrap: wrap; }
+    .track-form input {
+        flex: 1;
+        padding: 14px 20px;
+        border-radius: 30px;
+        border: none;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        min-width: 200px;
+    }
+    .track-form button {
+        padding: 14px 30px;
+        border-radius: 30px;
+        background: var(--dark);
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .track-form button:hover { background: var(--secondary); }
+
+    /* Contact section */
+    .contact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 24px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .contact-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 32px 24px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        transition: all 0.3s;
+    }
+    .contact-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+    .contact-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        font-size: 22px;
+        color: #fff;
+    }
+    .contact-card h3 { font-size: 15px; color: var(--secondary); font-weight: 700; margin-bottom: 6px; }
+    .contact-card p { font-size: 13px; color: #777; line-height: 1.6; }
+
+    /* Login options */
+    .login-section { background: #f0f0f7; }
+    .login-cards {
+        display: flex;
+        gap: 30px;
+        justify-content: center;
+        flex-wrap: wrap;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .login-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        flex: 1;
+        min-width: 240px;
+        max-width: 320px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s;
+    }
+    .login-card:hover { transform: translateY(-8px); box-shadow: 0 16px 40px rgba(0,0,0,0.15); }
+    .login-card-icon {
+        font-size: 50px;
+        margin-bottom: 20px;
+    }
+    .login-card h3 { font-size: 20px; font-weight: 700; color: var(--secondary); margin-bottom: 10px; }
+    .login-card p { font-size: 13px; color: #777; margin-bottom: 24px; line-height: 1.6; }
+</style>
+{% endblock %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-badge">⚡ Premium Vehicle Service</div>
+        <h1>SMART<span>SERVICE</span></h1>
+        <div class="hero-caption">Expert Care For Every Ride</div>
+        <p>Complete vehicle servicing for 2, 3 & 4 wheelers. Expert mechanics, transparent pricing, real-time tracking, and on-time delivery.</p>
+        <div class="hero-btns">
+            <a href="{% url 'customer_login' %}" class="btn btn-primary"><i class="fas fa-wrench"></i> Book Service Now</a>
+            <a href="{% url 'track_service' %}" class="btn btn-outline" style="border-color:#fff;color:#fff;"><i class="fas fa-map-marker-alt"></i> Track My Service</a>
+        </div>
+    </div>
+    <div class="hero-scroll">
+        <i class="fas fa-chevron-down fa-lg"></i><br>Scroll
+    </div>
+</section>
+
+<!-- Stats Bar -->
+<div class="stats-bar">
+    <div class="stat-item"><div class="num">10K+</div><div class="lbl">Happy Customers</div></div>
+    <div class="stat-item"><div class="num">50K+</div><div class="lbl">Vehicles Serviced</div></div>
+    <div class="stat-item"><div class="num">25+</div><div class="lbl">Expert Mechanics</div></div>
+    <div class="stat-item"><div class="num">15+</div><div class="lbl">Years Experience</div></div>
+    <div class="stat-item"><div class="num">99%</div><div class="lbl">Satisfaction Rate</div></div>
+</div>
+
+<!-- Services Section -->
+<section class="section">
+    <div class="section-title">
+        <h2>Our Services</h2>
+        <p>Comprehensive vehicle care solutions under one roof</p>
+    </div>
+    <div class="services-grid">
+        {% for icon, title, desc in services_list %}
+        <div class="service-card">
+            <div class="service-icon"><i class="{{ icon }}"></i></div>
+            <h3>{{ title }}</h3>
+            <p>{{ desc }}</p>
+        </div>
+        {% empty %}
+        <div class="service-card"><div class="service-icon"><i class="fas fa-oil-can"></i></div><h3>General Service</h3><p>Complete checkup of all systems including fluids, belts, filters and more.</p></div>
+        <div class="service-card"><div class="service-icon"><i class="fas fa-car-crash"></i></div><h3>Brake Service</h3><p>Brake pad replacement, rotor resurfacing and hydraulic fluid flush.</p></div>
+        <div class="service-card"><div class="service-icon"><i class="fas fa-tire"></i></div><h3>Tyre & Wheel</h3><p>Tyre rotation, balancing, alignment and puncture repair service.</p></div>
+        <div class="service-card"><div class="service-icon"><i class="fas fa-snowflake"></i></div><h3>AC Service</h3><p>Gas recharge, coil cleaning and full AC system diagnostics.</p></div>
+        <div class="service-card"><div class="service-icon"><i class="fas fa-battery-full"></i></div><h3>Battery & Electrical</h3><p>Battery testing, replacement, and full electrical diagnostics.</p></div>
+        <div class="service-card"><div class="service-icon"><i class="fas fa-spray-can"></i></div><h3>Detailing & Wash</h3><p>Interior vacuuming, exterior polishing and ceramic coating.</p></div>
+        <div class="service-card"><div class="service-icon"><i class="fas fa-engine"></i></div><h3>Engine Repair</h3><p>Major & minor engine overhaul, timing belt and gasket repair.</p></div>
+        <div class="service-card"><div class="service-icon"><i class="fas fa-clipboard-check"></i></div><h3>Inspection Report</h3><p>40-point digital inspection with photographs and PDF report.</p></div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Vehicles Section -->
+<section class="section vehicles-section">
+    <div class="section-title">
+        <h2>We Service All Vehicles</h2>
+        <p>From two-wheelers to four-wheelers — all brands, all models</p>
+    </div>
+    <div class="vehicle-tabs">
+        <button class="vehicle-tab active" onclick="filterVehicles('all', this)">All Vehicles</button>
+        <button class="vehicle-tab" onclick="filterVehicles('2w', this)">2 Wheelers</button>
+        <button class="vehicle-tab" onclick="filterVehicles('3w', this)">3 Wheelers</button>
+        <button class="vehicle-tab" onclick="filterVehicles('4w', this)">4 Wheelers</button>
+    </div>
+    <div class="vehicles-grid" id="vehiclesGrid">
+        <!-- 2 Wheelers -->
+        <div class="vehicle-card" data-type="2w">
+            <div class="vehicle-img">
+                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" alt="Motorcycle" onerror="this.parentElement.innerHTML='🏍️'">
+            </div>
+            <div class="vehicle-info">
+                <span class="vehicle-type-badge">2 Wheeler</span>
+                <h3>Motorcycles</h3>
+                <p>Hero, Bajaj, TVS, Royal Enfield, Honda, Yamaha</p>
+            </div>
+        </div>
+        <div class="vehicle-card" data-type="2w">
+            <div class="vehicle-img">
+                <img src="https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=400&q=80" alt="Scooter" onerror="this.parentElement.innerHTML='🛵'">
+            </div>
+            <div class="vehicle-info">
+                <span class="vehicle-type-badge">2 Wheeler</span>
+                <h3>Scooters</h3>
+                <p>Honda Activa, TVS Jupiter, Suzuki Access, Vespa</p>
+            </div>
+        </div>
+        <!-- 3 Wheelers -->
+        <div class="vehicle-card" data-type="3w">
+            <div class="vehicle-img">
+                <img src="https://images.unsplash.com/photo-1609010697446-11f2155278b0?w=400&q=80" alt="Auto Rickshaw" onerror="this.parentElement.innerHTML='🛺'">
+            </div>
+            <div class="vehicle-info">
+                <span class="vehicle-type-badge">3 Wheeler</span>
+                <h3>Auto Rickshaw</h3>
+                <p>Bajaj RE, TVS King, Piaggio Ape, Mahindra Alfa</p>
+            </div>
+        </div>
+        <div class="vehicle-card" data-type="3w">
+            <div class="vehicle-img">
+                <img src="https://images.unsplash.com/photo-1634137984403-fd3e09d75b1c?w=400&q=80" alt="E-Rickshaw" onerror="this.parentElement.innerHTML='⚡🛺'">
+            </div>
+            <div class="vehicle-info">
+                <span class="vehicle-type-badge">3 Wheeler</span>
+                <h3>E-Rickshaw</h3>
+                <p>Mahindra Treo, Bajaj Qute, Piaggio E-City</p>
+            </div>
+        </div>
+        <!-- 4 Wheelers -->
+        <div class="vehicle-card" data-type="4w">
+            <div class="vehicle-img">
+                <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&q=80" alt="Sedan" onerror="this.parentElement.innerHTML='🚗'">
+            </div>
+            <div class="vehicle-info">
+                <span class="vehicle-type-badge">4 Wheeler</span>
+                <h3>Sedans</h3>
+                <p>Maruti Dzire, Honda City, Hyundai Verna, Tata Tigor</p>
+            </div>
+        </div>
+        <div class="vehicle-card" data-type="4w">
+            <div class="vehicle-img">
+                <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=400&q=80" alt="SUV" onerror="this.parentElement.innerHTML='🚙'">
+            </div>
+            <div class="vehicle-info">
+                <span class="vehicle-type-badge">4 Wheeler</span>
+                <h3>SUVs & MUVs</h3>
+                <p>Maruti Brezza, Hyundai Creta, Tata Nexon, Mahindra Scorpio</p>
+            </div>
+        </div>
+        <div class="vehicle-card" data-type="4w">
+            <div class="vehicle-img">
+                <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&q=80" alt="Hatchback" onerror="this.parentElement.innerHTML='🚗'">
+            </div>
+            <div class="vehicle-info">
+                <span class="vehicle-type-badge">4 Wheeler</span>
+                <h3>Hatchbacks</h3>
+                <p>Maruti Swift, Hyundai i20, Tata Altroz, Honda Jazz</p>
+            </div>
+        </div>
+        <div class="vehicle-card" data-type="4w">
+            <div class="vehicle-img">
+                <img src="https://images.unsplash.com/photo-1532974297617-c0f05fe48bff?w=400&q=80" alt="Pickup" onerror="this.parentElement.innerHTML='🛻'">
+            </div>
+            <div class="vehicle-info">
+                <span class="vehicle-type-badge">4 Wheeler</span>
+                <h3>Commercial Vehicles</h3>
+                <p>Tata Ace, Mahindra Bolero Pickup, Mini Trucks</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Track Service -->
+<section class="track-section">
+    <h2><i class="fas fa-satellite-dish"></i> Track Your Service</h2>
+    <p>Enter your Tracking ID to get real-time updates on your vehicle's service status</p>
+    <form action="{% url 'track_service' %}" method="GET" class="track-form">
+        <input type="text" name="tracking_id" placeholder="Enter Tracking ID (e.g. SS12345678)" style="text-transform:uppercase;" required>
+        <button type="submit"><i class="fas fa-search"></i> Track Now</button>
+    </form>
+</section>
+
+<!-- Login Options -->
+<section class="section login-section">
+    <div class="section-title">
+        <h2 style="color:var(--secondary);">Login / Register</h2>
+        <p>Choose how you'd like to access Smart Service</p>
+    </div>
+    <div class="login-cards">
+        <div class="login-card">
+            <div class="login-card-icon">👤</div>
+            <h3>Customer Login</h3>
+            <p>Login with your mobile number and OTP to book services, track your vehicle, and view payment history.</p>
+            <a href="{% url 'customer_login' %}" class="btn btn-primary">Login / Register</a>
+        </div>
+        <div class="login-card">
+            <div class="login-card-icon">🔧</div>
+            <h3>Employee Login</h3>
+            <p>Login with your Employee ID and registered mobile number to manage services, assign workers, and process payments.</p>
+            <a href="{% url 'employee_login' %}" class="btn btn-secondary">Employee Login</a>
+        </div>
+    </div>
+</section>
+
+<!-- Contact -->
+<section class="section" id="contact">
+    <div class="section-title">
+        <h2>Contact Us</h2>
+        <p>We're always here to help you</p>
+    </div>
+    <div class="contact-grid">
+        <div class="contact-card">
+            <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
+            <h3>Call Us</h3>
+            <p>+91 98765 43210<br>+91 98765 43211<br>Mon–Sat, 8AM–8PM</p>
+        </div>
+        <div class="contact-card">
+            <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+            <h3>Email Us</h3>
+            <p>support@smartservice.in<br>info@smartservice.in</p>
+        </div>
+        <div class="contact-card">
+            <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+            <h3>Visit Us</h3>
+            <p>Plot 42, Auto Nagar<br>Hyderabad, Telangana<br>500070</p>
+        </div>
+        <div class="contact-card">
+            <div class="contact-icon"><i class="fas fa-clock"></i></div>
+            <h3>Working Hours</h3>
+            <p>Monday – Saturday<br>8:00 AM – 8:00 PM<br>Sunday: 9AM – 2PM</p>
+        </div>
+    </div>
+    <div style="text-align:center;margin-top:30px;">
+        <a href="{% url 'contact' %}" class="btn btn-outline">Send Us a Message</a>
+    </div>
+</section>
+
+<script>
+function filterVehicles(type, btn) {
+    document.querySelectorAll('.vehicle-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.vehicle-card').forEach(card => {
+        card.style.display = (type === 'all' || card.dataset.type === type) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

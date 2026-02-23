@@ -1,0 +1,85 @@
+{% extends 'service_app/base.html' %}
+{% block title %}Process Payment - SMART SERVICE{% endblock %}
+{% block extra_css %}
+<style>
+.page-wrap{max-width:600px;margin:40px auto;padding:0 20px;}
+.pay-card{background:#fff;border-radius:20px;padding:40px;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
+.pay-card h2{font-family:'Orbitron',monospace;color:var(--secondary);font-size:22px;margin-bottom:20px;}
+.service-summary{background:#f8f8f8;border-radius:12px;padding:20px;margin-bottom:24px;}
+.summary-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px solid #eee;}
+.summary-row:last-child{border-bottom:none;font-weight:700;font-size:16px;}
+.method-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;}
+.method-card{border:2px solid #e0e0e0;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;}
+.method-card:hover,.method-card.selected{border-color:var(--primary);background:rgba(255,107,0,0.05);}
+.method-card input{display:none;}
+.method-card .micon{font-size:28px;margin-bottom:8px;}
+.method-card .mname{font-size:13px;font-weight:600;color:var(--secondary);}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-wrap">
+    <div style="margin-bottom:20px;">
+        <a href="{% url 'employee_dashboard' %}" style="color:var(--primary);text-decoration:none;font-size:14px;"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+    <div class="pay-card">
+        <h2><i class="fas fa-rupee-sign" style="color:var(--primary)"></i> Process Payment</h2>
+
+        <div class="service-summary">
+            <div class="summary-row"><span>Customer</span><span>{{ service.customer.name }}</span></div>
+            <div class="summary-row"><span>Vehicle</span><span>{{ service.vehicle.vehicle_number }}</span></div>
+            <div class="summary-row"><span>Service</span><span>{{ service.get_service_type_display }}</span></div>
+            <div class="summary-row"><span>Tracking ID</span><span style="color:var(--primary)">{{ service.tracking_id }}</span></div>
+            <div class="summary-row"><span>Total Amount</span><span style="color:var(--primary)">₹{{ service.estimated_amount }}</span></div>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Final Amount (₹) *</label>
+                <input type="number" name="amount" value="{{ service.estimated_amount }}" min="0" step="1" required>
+            </div>
+
+            <label style="margin-bottom:12px;display:block;">Payment Method *</label>
+            <div class="method-cards">
+                <label class="method-card" id="mc_OFFLINE" onclick="selectMethod('OFFLINE')">
+                    <input type="radio" name="method" value="OFFLINE" required>
+                    <div class="micon">💵</div>
+                    <div class="mname">Cash / Offline</div>
+                </label>
+                <label class="method-card" id="mc_UPI" onclick="selectMethod('UPI')">
+                    <input type="radio" name="method" value="UPI">
+                    <div class="micon">📱</div>
+                    <div class="mname">UPI</div>
+                </label>
+                <label class="method-card" id="mc_CARD" onclick="selectMethod('CARD')">
+                    <input type="radio" name="method" value="CARD">
+                    <div class="micon">💳</div>
+                    <div class="mname">Card</div>
+                </label>
+                <label class="method-card" id="mc_ONLINE" onclick="selectMethod('ONLINE')">
+                    <input type="radio" name="method" value="ONLINE">
+                    <div class="micon">🌐</div>
+                    <div class="mname">Online Transfer</div>
+                </label>
+            </div>
+
+            <div class="form-group" id="txn_group" style="display:none;">
+                <label>Transaction ID / Reference (optional)</label>
+                <input type="text" name="transaction_id" placeholder="Enter transaction reference">
+            </div>
+
+            <button type="submit" class="btn btn-success" style="width:100%;border-radius:12px;padding:14px;margin-top:8px;">
+                <i class="fas fa-check-circle"></i> Confirm Payment & Generate Receipt
+            </button>
+        </form>
+    </div>
+</div>
+<script>
+function selectMethod(m){
+    document.querySelectorAll('.method-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('mc_'+m).classList.add('selected');
+    document.getElementById('mc_'+m).querySelector('input').checked=true;
+    document.getElementById('txn_group').style.display=(m!='OFFLINE')?'block':'none';
+}
+</script>
+{% endblock %}

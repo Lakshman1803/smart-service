@@ -1,0 +1,87 @@
+{% extends 'service_app/base.html' %}
+{% block title %}New Service Request - SMART SERVICE{% endblock %}
+{% block extra_css %}
+<style>
+.form-container { max-width:700px;margin:40px auto;padding:0 20px; }
+.form-card { background:#fff;border-radius:20px;padding:40px;box-shadow:0 4px 20px rgba(0,0,0,0.08); }
+.form-card h2 { font-family:'Orbitron',monospace;color:var(--secondary);font-size:22px;margin-bottom:4px; }
+.form-card p { color:#999;font-size:14px;margin-bottom:30px; }
+.section-divider { font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--primary);margin:28px 0 16px;padding-bottom:8px;border-bottom:2px solid #f0f0f0; }
+.form-row { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+@media(max-width:500px){.form-row{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <h2>New Service Request</h2>
+        <p>Fill in customer and vehicle details. An OTP will be sent to the customer for acceptance.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="section-divider">👤 Customer Details</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Customer Name *</label>
+                    <input type="text" name="customer_name" placeholder="Full name" required>
+                </div>
+                <div class="form-group">
+                    <label>Mobile Number *</label>
+                    <input type="tel" name="mobile" placeholder="10-digit mobile" maxlength="10" pattern="[0-9]{10}" required>
+                </div>
+            </div>
+
+            <div class="section-divider">🚗 Vehicle Details</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Vehicle Number *</label>
+                    <input type="text" name="vehicle_number" placeholder="e.g. TS09AB1234" style="text-transform:uppercase" required>
+                </div>
+                <div class="form-group">
+                    <label>Vehicle Type *</label>
+                    <select name="vehicle_type" required>
+                        <option value="">Select type</option>
+                        {% for val, label in vehicle_types %}
+                        <option value="{{ val }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Brand *</label>
+                    <input type="text" name="brand" placeholder="e.g. Honda, Maruti" required>
+                </div>
+                <div class="form-group">
+                    <label>Model *</label>
+                    <input type="text" name="model_name" placeholder="e.g. Activa, Swift" required>
+                </div>
+            </div>
+
+            <div class="section-divider">🔧 Service Details</div>
+            <div class="form-group">
+                <label>Service Type *</label>
+                <select name="service_type" required>
+                    <option value="">Select service</option>
+                    {% for val, label in service_types %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Description / Complaint</label>
+                <textarea name="description" rows="3" placeholder="Describe the issue or service needed..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Estimated Amount (₹)</label>
+                <input type="number" name="estimated_amount" placeholder="0" min="0" step="50">
+            </div>
+
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit & Send OTP to Customer</button>
+                <a href="{% url 'employee_dashboard' %}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
