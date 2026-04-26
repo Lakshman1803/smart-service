@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}500 - Server Error | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="min-height:90vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+<div>
+    <div style="font-size:8rem;font-weight:700;font-family:Rajdhani;color:#f39c12;line-height:1;margin-bottom:1rem;">500</div>
+    <div style="font-size:2rem;font-weight:700;margin-bottom:1rem;">Something Went Wrong</div>
+    <p style="color:var(--text-muted);max-width:500px;margin:0 auto 2rem;">Our team has been notified and is working on a fix. Please try again in a moment.</p>
+    <a href="/" class="btn btn-primary btn-lg"><i class="fas fa-home"></i> Back to Home</a>
+</div>
+</div>
+{% endblock %}

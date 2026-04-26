@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% block title %}Booking {{ booking.booking_id }} — Employee | SMART REPAIR{% endblock %}
+{% block extra_css %}
+<style>
+.charge-row{display:flex;align-items:center;gap:0.75rem;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.03);margin-bottom:4px;font-size:0.85rem;}
+.charge-desc{flex:1;font-weight:500;}
+.charge-total{font-weight:700;min-width:70px;text-align:right;}
+.charge-del{min-width:30px;text-align:center;}
+.section-lbl{font-family:Rajdhani;font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;padding:6px 10px;border-radius:6px;margin-bottom:6px;margin-top:12px;}
+.issue-lbl{background:rgba(52,152,219,0.1);color:#3498db;}
+.extra-lbl{background:rgba(243,156,18,0.1);color:#f39c12;}
+.parts-lbl{background:rgba(46,204,113,0.1);color:#2ecc71;}
+</style>
+{% endblock %}
+{% block content %}
+<div style="padding:2.5rem 0;">
+<div class="container">
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 style="font-size:1.8rem;font-weight:700;">
+            Booking <span style="color:var(--primary);font-family:monospace;">{{ booking.booking_id }}</span>
+        </h1>
+        <span class="badge badge-{% if booking.status == 'completed' %}success{% elif booking.status == 'in_progress' %}info{% elif booking.status == 'cancelled' %}danger{% elif booking.status == 'confirmed' %}primary{% else %}warning{% endif %}" style="font-size:0.9rem;padding:7px 16px;">
+            {{ booking.status|upper }}
+        </span>
+    </div>
+    <a href="{% url 'employee_bookings' %}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:2rem;">
+
+<!-- ── LEFT COLUMN ───────────────────────────────── -->
+<div>
+
+<!-- Customer -->
+<div class="card mb-3">
+<div class="card-header"><i class="fas fa-user text-primary"></i> Customer Details</div>
+<div class="card-body">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">Name</div><div style="font-weight:700;">{{ booking.customer.get_full_name|default:"N/A" }}</div></div>
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">Mobile</div><div style="font-weight:700;font-family:monospace;">+91 {{ booking.customer.mobile_number }}</div></div>
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">City</div><div>{{ booking.customer.city|default:"N/A" }}</div></div>
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">Booking Type</div><div><span class="badge badge-info">{{ booking.booking_type|upper }}</span></div></div>
+</div>
+</div>
+</div>
+
+<!-- Vehicle -->
+<div class="card mb-3">
+<div class="card-header"><i class="fas fa-car text-primary"></i> Vehicle</div>
+<div class="card-body">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">Vehicle No.</div><div style="font-weight:700;font-family:monospace;font-size:1.1rem;color:var(--primary);">{{ booking.vehicle.vehicle_number }}</div></div>
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">Type</div><div>{{ booking.vehicle.get_vehicle_type_display }}</div></div>
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">Make & Model</div><div>{{ booking.vehicle.make }} {{ booking.vehicle.model }} ({{ booking.vehicle.year }})</div></div>
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">Fuel</div><div>{{ booking.vehicle.fuel_type|upper }}</div></div>
+</div>
+{% if booking.problem_description %}
+<div style="margin-top:1rem;padding:0.75rem;background:rgba(255,255,255,0.03);border-radius:8px;">
+    <div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;margin-bottom:4px;">Problem Reported</div>
+    <div>{{ booking.problem_description }}</div>
+</div>
+{% endif %}
+</div>
+</div>
+
+<!-- Customer selected issues -->
+{% if booking.selected_issues.all %}
+<div class="card mb-3" style="border-color:rgba(52,152,219,0.3);">
+<div class="card-header" style="color:#3498db;"><i class="fas fa-exclamation-triangle"></i> Customer-Selected Issues</div>
+<div class="card-body">
+{% for issue in booking.selected_issues.all %}
+<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+    <div>
+        <div style="font-weight:600;">{{ issue.name }}</div>
+        <div style="color:var(--text-muted);font-size:0.78rem;">{{ issue.get_category_display }} · {{ issue.get_vehicle_type_display }}</div>
+    </div>
+    <div style="color:#3498db;font-weight:700;">{{ issue.cost_range }}</div>
+</div>
+{% endfor %}
+</div>
+</div>
+{% endif %}
+
+<!-- Repair charges -->
+<div class="card mb-3">
+<div class="card-header d-flex align-items-center justify-content-between">
+    <span><i class="fas fa-receipt text-primary"></i> Repair Charges</span>
+    <span style="font-size:0.8rem;color:var(--text-muted);">
+        Total: <strong style="color:var(--primary);">
+        ₹{% with s=0 %}{% for c in charges %}{% endfor %}{{ charges|length }}{% endwith %}
+        </strong>
+    </span>
+</div>
+<div class="card-body">
+
+{% if charges.count == 0 %}
+<div style="text-align:center;color:var(--text-muted);padding:1rem;">No charges added yet</div>
+{% else %}
+
+{% regroup charges by charge_type as grouped_charges %}
+{% for group in grouped_charges %}
+<div class="section-lbl {% if group.grouper == 'selected' or group.grouper == 'service' or group.grouper == 'diagnosed' %}issue-lbl{% elif group.grouper == 'extra' %}extra-lbl{% elif group.grouper == 'parts' %}parts-lbl{% endif %}">
+    {% if group.grouper == 'selected' %}Customer Selected Issues
+    {% elif group.grouper == 'service' %}Service Charges
+    {% elif group.grouper == 'diagnosed' %}Diagnosed at Center
+    {% elif group.grouper == 'extra' %}Extra / Additional Work
+    {% elif group.grouper == 'parts' %}Parts & Materials
+    {% elif group.grouper == 'labour' %}Labour Charges
+    {% else %}{{ group.grouper|title }}
+    {% endif %}
+</div>
+{% for c in group.list %}
+<div class="charge-row">
+    <div class="charge-desc">
+        {{ c.description }}
+        {% if c.is_extra %}<span style="font-size:0.7rem;background:rgba(243,156,18,0.2);color:#f39c12;padding:2px 6px;border-radius:8px;">Extra</span>{% endif %}
+    </div>
+    <div style="color:var(--text-muted);font-size:0.78rem;">×{{ c.quantity }}</div>
+    <div class="charge-total {% if c.is_extra %}text-warning{% elif c.charge_type == 'selected' %}text-info{% else %}text-success{% endif %}">
+        ₹{{ c.total }}
+    </div>
+    <div class="charge-del">
+        {% if booking.status != 'completed' %}
+        <a href="{% url 'remove_charge' c.pk %}" onclick="return confirm('Remove this charge?')" style="color:#e74c3c;font-size:0.82rem;"><i class="fas fa-times"></i></a>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+{% endfor %}
+
+{% endif %}
+
+<!-- Quick add extra charge form -->
+{% if booking.status == 'in_progress' or booking.status == 'confirmed' %}
+<div style="margin-top:1rem;padding-top:1rem;border-top:1px dashed var(--border);">
+<p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;"><i class="fas fa-plus-circle" style="color:#f39c12;"></i> Add Extra Charge</p>
+<form method="post" action="{% url 'add_extra_charge' booking.pk %}">
+{% csrf_token %}
+<div style="display:grid;grid-template-columns:2fr 0.8fr 1fr 0.8fr auto;gap:0.5rem;align-items:end;">
+    <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.72rem;">Description</label>
+    <input type="text" name="description" class="form-control" placeholder="e.g. Brake fluid top-up" required></div>
+    <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.72rem;">Qty</label>
+    <input type="number" name="quantity" class="form-control" value="1" min="0.1" step="0.1"></div>
+    <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.72rem;">Unit Price (₹)</label>
+    <input type="number" name="unit_price" class="form-control" placeholder="0" required></div>
+    <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.72rem;">Type</label>
+    <select name="charge_type" class="form-control">
+        <option value="extra">Extra Work</option>
+        <option value="parts">Parts</option>
+        <option value="labour">Labour</option>
+        <option value="diagnosed">Diagnosed</option>
+    </select></div>
+    <button type="submit" class="btn btn-warning" style="height:42px;"><i class="fas fa-plus"></i></button>
+</div>
+</form>
+</div>
+{% endif %}
+
+</div>
+</div>
+
+<!-- Work Assignments -->
+{% if booking.work_assignments.all %}
+<div class="card mb-3">
+<div class="card-header"><i class="fas fa-users text-primary"></i> Assigned Workers</div>
+<div class="card-body">
+{% for wa in booking.work_assignments.all %}
+<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+    <div>
+        <div style="font-weight:600;">{{ wa.worker.user.get_full_name }}</div>
+        <div style="color:var(--text-muted);font-size:0.78rem;">{{ wa.worker.get_designation_display }} · {{ wa.task_description }}</div>
+    </div>
+    <span class="badge badge-{% if wa.status == 'completed' %}success{% elif wa.status == 'in_progress' %}info{% else %}warning{% endif %}">{{ wa.status|upper }}</span>
+</div>
+{% endfor %}
+</div>
+</div>
+{% endif %}
+
+{% if booking.service_record %}
+<div class="card mb-3" style="border-color:rgba(46,204,113,0.3);">
+<div class="card-header" style="color:var(--success);"><i class="fas fa-clipboard-check"></i> Service Record</div>
+<div class="card-body">
+    <div><strong>Work Done:</strong><p style="color:var(--text-muted);margin-top:4px;">{{ booking.service_record.work_done }}</p></div>
+    {% if booking.service_record.parts_replaced %}<div style="margin-top:6px;"><strong>Parts Replaced:</strong><p style="color:var(--text-muted);margin-top:4px;">{{ booking.service_record.parts_replaced }}</p></div>{% endif %}
+    {% if booking.service_record.next_service_km %}<div style="margin-top:6px;"><strong>Next Service at:</strong> {{ booking.service_record.next_service_km }} km</div>{% endif %}
+</div>
+</div>
+{% endif %}
+
+</div><!-- end left column -->
+
+<!-- ── RIGHT COLUMN ──────────────────────────────── -->
+<div>
+
+<!-- Actions -->
+<div class="card mb-3">
+<div class="card-header"><i class="fas fa-bolt" style="color:#f39c12;"></i> Actions</div>
+<div class="card-body" style="display:flex;flex-direction:column;gap:0.75rem;">
+
+{% if not booking.otp_verified and booking.status == 'confirmed' %}
+<a href="{% url 'verify_customer_otp' booking.pk %}" class="btn btn-primary w-100">
+    <i class="fas fa-shield-alt"></i> Verify Customer OTP
+</a>
+{% endif %}
+
+{% if booking.status == 'in_progress' %}
+<a href="{% url 'assign_workers' booking.pk %}" class="btn btn-warning w-100">
+    <i class="fas fa-users"></i> Assign Workers
+</a>
+<a href="{% url 'complete_service' booking.pk %}" class="btn btn-success w-100">
+    <i class="fas fa-check-circle"></i> Mark Service Completed
+</a>
+{% endif %}
+
+{% if booking.status == 'completed' and not booking.payment %}
+<a href="{% url 'create_bill' booking.pk %}" class="btn btn-primary w-100">
+    <i class="fas fa-file-invoice"></i> Generate Bill
+</a>
+{% endif %}
+
+{% if booking.status == 'completed' and booking.payment %}
+<a href="{% url 'view_receipt' booking.payment.pk %}" class="btn btn-success w-100">
+    <i class="fas fa-receipt"></i> View Receipt
+</a>
+{% endif %}
+
+<a href="{% url 'create_bill' booking.pk %}" class="btn btn-outline w-100">
+    <i class="fas fa-calculator"></i> Open Bill / Edit Charges
+</a>
+<a href="{% url 'online_payment' booking.pk %}" class="btn btn-outline w-100">
+    <i class="fas fa-qrcode"></i> Customer Payment (QR)
+</a>
+<a href="{% url 'upload_qr_code' %}" class="btn btn-outline w-100" style="border-color:rgba(46,204,113,.3);color:var(--success);">
+    <i class="fas fa-upload"></i> Upload/Update Center QR
+</a>
+</div>
+</div>
+
+<!-- Booking timeline -->
+<div class="card mb-3">
+<div class="card-header"><i class="fas fa-history text-primary"></i> Timeline</div>
+<div class="card-body">
+<div style="display:flex;flex-direction:column;gap:1rem;">
+<div class="d-flex gap-3 align-items-start">
+    <div style="width:32px;height:32px;border-radius:50%;background:rgba(230,57,70,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-calendar-plus" style="color:var(--primary);font-size:0.75rem;"></i></div>
+    <div><div style="font-weight:600;font-size:0.875rem;">Booking Created</div><div style="color:var(--text-muted);font-size:0.78rem;">{{ booking.created_at|date:"d M Y, g:i A" }}</div></div>
+</div>
+{% if booking.check_in_time %}
+<div class="d-flex gap-3 align-items-start">
+    <div style="width:32px;height:32px;border-radius:50%;background:rgba(52,152,219,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-sign-in-alt" style="color:#3498db;font-size:0.75rem;"></i></div>
+    <div><div style="font-weight:600;font-size:0.875rem;">Customer Checked In</div><div style="color:var(--text-muted);font-size:0.78rem;">{{ booking.check_in_time|date:"d M Y, g:i A" }}</div></div>
+</div>
+{% endif %}
+{% if booking.completed_at %}
+<div class="d-flex gap-3 align-items-start">
+    <div style="width:32px;height:32px;border-radius:50%;background:rgba(46,204,113,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-check" style="color:#2ecc71;font-size:0.75rem;"></i></div>
+    <div><div style="font-weight:600;font-size:0.875rem;">Service Completed</div><div style="color:var(--text-muted);font-size:0.78rem;">{{ booking.completed_at|date:"d M Y, g:i A" }}</div></div>
+</div>
+{% endif %}
+{% if booking.payment %}
+<div class="d-flex gap-3 align-items-start">
+    <div style="width:32px;height:32px;border-radius:50%;background:rgba(39,174,96,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-rupee-sign" style="color:#27ae60;font-size:0.75rem;"></i></div>
+    <div><div style="font-weight:600;font-size:0.875rem;">Payment: ₹{{ booking.payment.total_amount }}</div><div style="color:var(--text-muted);font-size:0.78rem;">{{ booking.payment.get_payment_method_display }} · {{ booking.payment.paid_at|date:"d M Y, g:i A" }}</div></div>
+</div>
+{% endif %}
+</div>
+</div>
+</div>
+
+<!-- Quick workers list -->
+<div class="card">
+<div class="card-header"><i class="fas fa-users text-primary"></i> Available Workers ({{ workers.count }})</div>
+<div class="card-body" style="max-height:220px;overflow-y:auto;">
+{% for w in workers %}
+<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
+    <div style="width:32px;height:32px;border-radius:50%;background:rgba(230,57,70,0.1);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--primary);font-size:0.8rem;flex-shrink:0;">{{ w.user.first_name|first|upper }}</div>
+    <div style="flex:1;">
+        <div style="font-weight:600;font-size:0.85rem;">{{ w.user.get_full_name }}</div>
+        <div style="color:var(--text-muted);font-size:0.72rem;">{{ w.get_designation_display }} · {{ w.employee_id }}</div>
+    </div>
+</div>
+{% empty %}
+<p style="color:var(--text-muted);font-size:0.85rem;">No workers at this center.</p>
+{% endfor %}
+</div>
+</div>
+
+</div><!-- end right col -->
+</div><!-- end grid -->
+</div>
+</div>
+{% endblock %}

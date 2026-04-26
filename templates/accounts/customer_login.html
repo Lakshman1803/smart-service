@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Login - SMART REPAIR{% endblock %}
+
+{% block extra_css %}
+<style>
+.auth-page { min-height: 100vh; display: flex; align-items: center; padding: 2rem 0; }
+.auth-container { max-width: 480px; margin: 0 auto; padding: 0 1.5rem; width: 100%; }
+.auth-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+}
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+.auth-header { text-align: center; margin-bottom: 2rem; }
+.auth-icon { width: 72px; height: 72px; background: rgba(230,57,70,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--primary); margin: 0 auto 1rem; }
+.auth-title { font-size: 1.8rem; font-weight: 700; }
+.auth-subtitle { color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem; }
+.phone-display { display: flex; align-items: center; gap: 10px; background: rgba(230,57,70,0.05); border: 1px solid rgba(230,57,70,0.2); border-radius: 12px; padding: 12px 16px; margin-bottom: 1.5rem; }
+.phone-display i { color: var(--primary); }
+.phone-display span { font-weight: 600; }
+.otp-inputs { display: flex; gap: 10px; justify-content: center; margin: 1.5rem 0; }
+.otp-inputs input { width: 50px; height: 56px; text-align: center; font-size: 1.4rem; font-weight: 700; background: rgba(255,255,255,0.05); border: 2px solid var(--border); border-radius: 12px; color: var(--text-light); transition: all 0.2s; }
+.otp-inputs input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(230,57,70,0.15); }
+.resend-timer { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem; }
+.resend-link { color: var(--primary); cursor: pointer; text-decoration: underline; }
+.divider { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; color: var(--text-muted); font-size: 0.8rem; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon"><i class="fas fa-mobile-alt"></i></div>
+                <h1 class="auth-title">Customer Login</h1>
+                <p class="auth-subtitle">
+                    {% if step == 'otp' %}Enter the OTP sent to your mobile{% else %}Login with your mobile number & OTP{% endif %}
+                </p>
+            </div>
+
+            {% if step == 'mobile' or not step %}
+            <!-- STEP 1: Enter Mobile -->
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="send_otp">
+                <div class="form-group">
+                    <label class="form-label">Mobile Number</label>
+                    <div style="position:relative;">
+                        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);">+91</span>
+                        <input type="tel" name="mobile_number" class="form-control" style="padding-left:45px;"
+                               placeholder="Enter 10-digit mobile number" maxlength="10" pattern="[0-9]{10}" required autofocus>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 btn-lg" style="margin-top:0.5rem;">
+                    <i class="fas fa-paper-plane"></i> Send OTP
+                </button>
+            </form>
+
+            <div class="divider">OR</div>
+
+            <div style="text-align:center;">
+                <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:1rem;">New customer? Register in seconds</p>
+                <a href="{% url 'customer_register' %}" class="btn btn-outline w-100">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </a>
+            </div>
+
+            <div style="text-align:center;margin-top:1.5rem;">
+                <a href="{% url 'employee_login' %}" style="color:var(--text-muted);font-size:0.8rem;text-decoration:none;">
+                    <i class="fas fa-id-badge"></i> Employee? Login here
+                </a>
+            </div>
+
+            {% elif step == 'otp' %}
+            <!-- STEP 2: Enter OTP -->
+            <div class="phone-display">
+                <i class="fas fa-mobile-alt"></i>
+                <span>+91 {{ mobile }}</span>
+                <a href="{% url 'customer_login' %}" style="margin-left:auto;font-size:0.8rem;color:var(--primary);">Change</a>
+            </div>
+
+            <form method="post" id="otp-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="verify_otp">
+                <input type="hidden" name="otp" id="otp-combined">
+
+                <div class="otp-inputs" id="otp-boxes">
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="otp-digit">
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="otp-digit">
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="otp-digit">
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="otp-digit">
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="otp-digit">
+                    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="otp-digit">
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 btn-lg" id="verify-btn" disabled>
+                    <i class="fas fa-check"></i> Verify OTP
+                </button>
+            </form>
+
+            <div class="resend-timer">
+                <span id="timer-text">Resend OTP in <strong id="countdown">60</strong>s</span>
+                <span id="resend-text" style="display:none;">
+                    Didn't receive OTP? <span class="resend-link" onclick="resendOTP()">Resend OTP</span>
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="text-align:center;margin-top:1.5rem;">
+            <a href="{% url 'home' %}" style="color:var(--text-muted);font-size:0.85rem;text-decoration:none;">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// OTP input auto-advance
+const digits = document.querySelectorAll('.otp-digit');
+const combined = document.getElementById('otp-combined');
+const verifyBtn = document.getElementById('verify-btn');
+
+digits.forEach((inp, idx) => {
+    inp.addEventListener('input', e => {
+        const val = e.target.value.replace(/\D/g, '');
+        e.target.value = val;
+        if (val && idx < digits.length - 1) digits[idx + 1].focus();
+        updateCombined();
+    });
+    inp.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+            digits[idx - 1].focus();
+            digits[idx - 1].value = '';
+        }
+    });
+    inp.addEventListener('paste', e => {
+        e.preventDefault();
+        const paste = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+        paste.split('').forEach((c, i) => { if (digits[i]) digits[i].value = c; });
+        updateCombined();
+        if (digits[paste.length]) digits[Math.min(paste.length, 5)].focus();
+    });
+});
+
+function updateCombined() {
+    const val = Array.from(digits).map(d => d.value).join('');
+    if (combined) combined.value = val;
+    if (verifyBtn) verifyBtn.disabled = val.length < 6;
+}
+
+// Timer
+let t = 60;
+const timerEl = document.getElementById('countdown');
+const timerText = document.getElementById('timer-text');
+const resendText = document.getElementById('resend-text');
+
+if (timerEl) {
+    const interval = setInterval(() => {
+        t--;
+        if (timerEl) timerEl.textContent = t;
+        if (t <= 0) {
+            clearInterval(interval);
+            if (timerText) timerText.style.display = 'none';
+            if (resendText) resendText.style.display = 'block';
+        }
+    }, 1000);
+}
+
+function resendOTP() {
+    fetch("{% url 'resend_otp' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'mobile={{ mobile }}&purpose=login'
+    }).then(r => r.json()).then(d => {
+        if (d.success) {
+            location.reload();
+        }
+    });
+}
+
+if (digits.length) digits[0].focus();
+</script>
+{% endblock %}

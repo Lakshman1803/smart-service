@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}All Bookings - Employee | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="padding:3rem 0;">
+<div class="container">
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 style="font-size:2rem;font-weight:700;">All <span style="color:var(--primary);">Bookings</span></h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'employee_bookings' %}" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline{% endif %}">All</a>
+        <a href="{% url 'employee_bookings' %}?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-warning{% else %}btn-outline{% endif %}">Pending</a>
+        <a href="{% url 'employee_bookings' %}?status=confirmed" class="btn btn-sm {% if status_filter == 'confirmed' %}btn-primary{% else %}btn-outline{% endif %}">Confirmed</a>
+        <a href="{% url 'employee_bookings' %}?status=in_progress" class="btn btn-sm {% if status_filter == 'in_progress' %}btn-success{% else %}btn-outline{% endif %}">In Progress</a>
+        <a href="{% url 'employee_bookings' %}?status=completed" class="btn btn-sm {% if status_filter == 'completed' %}btn-success{% else %}btn-outline{% endif %}">Completed</a>
+    </div>
+</div>
+<div class="card">
+<div class="card-body" style="padding:0;">
+<table class="table">
+<thead><tr>
+    <th>Booking ID</th><th>Customer</th><th>Vehicle</th><th>Center</th>
+    <th>Date</th><th>Type</th><th>OTP</th><th>Status</th><th>Action</th>
+</tr></thead>
+<tbody>
+{% for b in bookings %}
+<tr>
+    <td><code style="color:var(--primary);">{{ b.booking_id }}</code></td>
+    <td>{{ b.customer.get_full_name|default:b.customer.mobile_number }}<br><span style="color:var(--text-muted);font-size:0.75rem;">{{ b.customer.mobile_number }}</span></td>
+    <td><strong>{{ b.vehicle.vehicle_number }}</strong><br><span style="color:var(--text-muted);font-size:0.75rem;">{{ b.vehicle.make }} {{ b.vehicle.model }}</span></td>
+    <td>{{ b.service_center.city }}</td>
+    <td>{{ b.booking_date|date:"d M Y" }}</td>
+    <td><span class="badge badge-{% if b.booking_type == 'online' %}info{% else %}secondary{% endif %}">{{ b.booking_type|upper }}</span></td>
+    <td>{% if b.otp_verified %}<span class="badge badge-success">✓ Verified</span>{% else %}<span class="badge badge-warning">Pending</span>{% endif %}</td>
+    <td><span class="badge badge-{% if b.status == 'completed' %}success{% elif b.status == 'in_progress' %}info{% elif b.status == 'cancelled' %}danger{% elif b.status == 'confirmed' %}primary{% else %}warning{% endif %}">{{ b.status|upper }}</span></td>
+    <td><a href="{% url 'employee_booking_detail' b.pk %}" class="btn btn-primary btn-sm">Manage</a></td>
+</tr>
+{% empty %}
+<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:3rem;">No bookings found</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+{% endblock %}

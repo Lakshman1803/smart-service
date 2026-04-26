@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block title %}Booking {{ booking.booking_id }} | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="padding:4rem 0;">
+<div class="container">
+<div style="max-width:820px;margin:0 auto;">
+
+<!-- Booking ID badge -->
+<div class="card mb-4" style="border-color:rgba(230,57,70,0.3);background:linear-gradient(135deg,rgba(230,57,70,0.06),rgba(29,53,87,0.12));">
+<div class="card-body" style="text-align:center;padding:2.5rem;">
+    <div style="font-size:3rem;margin-bottom:0.5rem;">
+        {% if booking.status == 'completed' %}✅{% elif booking.status == 'in_progress' %}🔧{% elif booking.status == 'cancelled' %}❌{% else %}📋{% endif %}
+    </div>
+    <div style="font-family:Rajdhani;font-size:2rem;font-weight:700;color:var(--primary);letter-spacing:2px;">{{ booking.booking_id }}</div>
+    <div style="margin:0.5rem 0;">
+        <span class="badge badge-{% if booking.status == 'completed' %}success{% elif booking.status == 'in_progress' %}info{% elif booking.status == 'cancelled' %}danger{% elif booking.status == 'confirmed' %}primary{% else %}warning{% endif %}" style="font-size:0.9rem;padding:7px 18px;">{{ booking.status|upper }}</span>
+    </div>
+    <div style="color:var(--text-muted);font-size:0.85rem;">Show this ID at the service center: <strong style="color:white;font-family:monospace;">{{ booking.booking_id }}</strong></div>
+</div>
+</div>
+
+<!-- Progress indicator -->
+<div class="card mb-4">
+<div class="card-header">Service Progress</div>
+<div class="card-body">
+<div style="display:flex;gap:0;">
+    <div style="flex:1;text-align:center;">
+        <div style="width:40px;height:40px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;{% if booking.status in 'confirmed,in_progress,completed' %}background:var(--primary);color:white;{% else %}background:var(--glass);border:2px solid var(--border);color:var(--text-muted);{% endif %}"><i class="fas fa-calendar-check"></i></div>
+        <div style="font-size:0.75rem;{% if booking.status in 'confirmed,in_progress,completed' %}color:var(--primary);font-weight:600;{% else %}color:var(--text-muted);{% endif %}">Confirmed</div>
+    </div>
+    <div style="flex:1;text-align:center;">
+        <div style="width:40px;height:40px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;{% if booking.status in 'in_progress,completed' %}background:#3498db;color:white;{% else %}background:var(--glass);border:2px solid var(--border);color:var(--text-muted);{% endif %}"><i class="fas fa-wrench"></i></div>
+        <div style="font-size:0.75rem;{% if booking.status in 'in_progress,completed' %}color:#3498db;font-weight:600;{% else %}color:var(--text-muted);{% endif %}">In Service</div>
+    </div>
+    <div style="flex:1;text-align:center;">
+        <div style="width:40px;height:40px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;{% if booking.status == 'completed' %}background:var(--success);color:white;{% else %}background:var(--glass);border:2px solid var(--border);color:var(--text-muted);{% endif %}"><i class="fas fa-check"></i></div>
+        <div style="font-size:0.75rem;{% if booking.status == 'completed' %}color:var(--success);font-weight:600;{% else %}color:var(--text-muted);{% endif %}">Completed</div>
+    </div>
+</div>
+</div>
+</div>
+
+<!-- Details grid -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;">
+<div class="card">
+<div class="card-header"><i class="fas fa-building text-primary"></i> Service Center</div>
+<div class="card-body">
+    <div style="font-weight:700;">{{ booking.service_center.name }}</div>
+    <div style="color:var(--text-muted);font-size:0.85rem;margin-top:4px;">{{ booking.service_center.address }}</div>
+    <div style="color:var(--text-muted);font-size:0.85rem;">{{ booking.service_center.city }}</div>
+    <div style="margin-top:8px;"><a href="tel:{{ booking.service_center.phone }}" class="btn btn-outline btn-sm"><i class="fas fa-phone"></i> {{ booking.service_center.phone }}</a></div>
+</div>
+</div>
+<div class="card">
+<div class="card-header"><i class="fas fa-car text-primary"></i> Vehicle</div>
+<div class="card-body">
+    <div style="font-weight:700;font-family:monospace;font-size:1.1rem;color:var(--primary);">{{ booking.vehicle.vehicle_number }}</div>
+    <div style="color:var(--text-muted);font-size:0.85rem;">{{ booking.vehicle.make }} {{ booking.vehicle.model }} ({{ booking.vehicle.year }})</div>
+    <div style="color:var(--text-muted);font-size:0.85rem;">{{ booking.vehicle.get_vehicle_type_display }} · {{ booking.vehicle.fuel_type|upper }}</div>
+</div>
+</div>
+</div>
+
+<!-- Booking info -->
+<div class="card mb-4">
+<div class="card-header"><i class="fas fa-info-circle text-primary"></i> Booking Info</div>
+<div class="card-body">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">Date</div><div style="font-weight:600;">{{ booking.booking_date|date:"d M Y" }}</div></div>
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">Time</div><div style="font-weight:600;">{% if booking.time_slot %}{{ booking.time_slot.start_time|time:"g:i A" }}{% else %}Walk-In{% endif %}</div></div>
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">Type</div><div><span class="badge badge-info">{{ booking.booking_type|upper }}</span></div></div>
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">OTP Verified</div><div>{% if booking.otp_verified %}<span class="badge badge-success">✓ Yes</span>{% else %}<span class="badge badge-warning">Pending</span>{% endif %}</div></div>
+    <div><div style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;">Estimated Total</div><div style="font-weight:600;color:var(--primary);">₹{{ booking.estimated_total }}</div></div>
+</div>
+</div>
+</div>
+
+<!-- Selected Issues -->
+{% if booking.selected_issues.all %}
+<div class="card mb-4" style="border-color:rgba(52,152,219,0.3);">
+<div class="card-header" style="color:#3498db;"><i class="fas fa-exclamation-triangle"></i> Issues You Reported</div>
+<div class="card-body">
+{% for issue in booking.selected_issues.all %}
+<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+    <div>
+        <div style="font-weight:600;font-size:0.9rem;">{{ issue.name }}</div>
+        <div style="color:var(--text-muted);font-size:0.78rem;">{{ issue.get_category_display }} · {{ issue.get_vehicle_type_display }}</div>
+    </div>
+    <div style="color:#3498db;font-weight:700;font-size:0.85rem;">{{ issue.cost_range }}</div>
+</div>
+{% endfor %}
+</div>
+</div>
+{% endif %}
+
+<!-- Charges breakdown (after service) -->
+{% if charges %}
+<div class="card mb-4">
+<div class="card-header"><i class="fas fa-receipt text-primary"></i> Repair Charges Breakdown</div>
+<div class="card-body" style="padding:0;">
+<table class="table">
+<thead><tr><th>Description</th><th>Type</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Price</th><th style="text-align:right;">Total</th></tr></thead>
+<tbody>
+{% for c in charges %}
+<tr>
+    <td style="font-weight:500;">{{ c.description }}</td>
+    <td>
+        <span style="font-size:0.75rem;padding:3px 8px;border-radius:8px;
+        {% if c.charge_type == 'selected' or c.charge_type == 'service' %}background:rgba(52,152,219,0.15);color:#3498db;
+        {% elif c.charge_type == 'extra' %}background:rgba(243,156,18,0.15);color:#f39c12;
+        {% elif c.charge_type == 'parts' %}background:rgba(46,204,113,0.15);color:#2ecc71;
+        {% else %}background:rgba(139,148,158,0.1);color:var(--text-muted);{% endif %}">
+            {{ c.get_charge_type_display }}
+        </span>
+    </td>
+    <td style="text-align:center;color:var(--text-muted);">{{ c.quantity }}</td>
+    <td style="text-align:right;color:var(--text-muted);">₹{{ c.unit_price }}</td>
+    <td style="text-align:right;font-weight:700;{% if c.is_extra %}color:#f39c12;{% endif %}">₹{{ c.total }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+{% endif %}
+
+<!-- Service record -->
+{% if booking.service_record %}
+<div class="card mb-4" style="border-color:rgba(46,204,113,0.3);">
+<div class="card-header" style="color:var(--success);"><i class="fas fa-clipboard-check"></i> Service Record</div>
+<div class="card-body">
+    <div><strong>Work Done:</strong><p style="color:var(--text-muted);margin-top:4px;">{{ booking.service_record.work_done }}</p></div>
+    {% if booking.service_record.parts_replaced %}<div style="margin-top:8px;"><strong>Parts Replaced:</strong><p style="color:var(--text-muted);margin-top:4px;">{{ booking.service_record.parts_replaced }}</p></div>{% endif %}
+    {% if booking.service_record.next_service_km %}<div style="margin-top:8px;"><strong>Next Service at:</strong> {{ booking.service_record.next_service_km }} km</div>{% endif %}
+    {% if booking.service_record.technician_notes %}<div style="margin-top:8px;"><strong>Technician Notes:</strong><p style="color:var(--text-muted);margin-top:4px;">{{ booking.service_record.technician_notes }}</p></div>{% endif %}
+</div>
+</div>
+{% endif %}
+
+<!-- Action buttons -->
+<div style="display:flex;gap:1rem;flex-wrap:wrap;">
+{% if booking.status in 'pending,confirmed' %}
+<a href="{% url 'cancel_booking' booking.pk %}" class="btn btn-danger" onclick="return confirm('Cancel this booking?')"><i class="fas fa-times"></i> Cancel</a>
+{% endif %}
+{% if booking.payment %}
+<a href="{% url 'view_receipt' booking.payment.pk %}" class="btn btn-success"><i class="fas fa-receipt"></i> View Receipt</a>
+{% elif booking.status == 'completed' %}
+<a href="{% url 'online_payment' booking.pk %}" class="btn btn-primary"><i class="fas fa-credit-card"></i> Pay Online</a>
+{% endif %}
+<a href="{% url 'my_bookings' %}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> All Bookings</a>
+</div>
+
+</div>
+</div>
+</div>
+{% endblock %}

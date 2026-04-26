@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% block title %}Online Payment — {{ booking.booking_id }} | SMART REPAIR{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── PAGE ───────────────────────────────────────────────────── */
+.pay-page   { min-height:100vh; display:flex; align-items:center; padding:3rem 0; }
+.pay-wrap   { max-width:560px; margin:0 auto; width:100%; padding:0 1rem; }
+
+/* ── CARD ───────────────────────────────────────────────────── */
+.pay-card   { background:var(--card-bg); border:1px solid var(--border); border-radius:20px; overflow:hidden; }
+.pay-header { background:linear-gradient(135deg,var(--primary),var(--primary-dark)); padding:1.75rem 2rem; }
+.pay-body   { padding:2rem; }
+
+/* ── AMOUNT BOX ─────────────────────────────────────────────── */
+.amt-box    { text-align:center; background:rgba(230,57,70,.07); border:1px solid rgba(230,57,70,.2); border-radius:14px; padding:1.25rem; margin-bottom:1.5rem; }
+.amt-label  { color:var(--text-muted); font-size:.75rem; text-transform:uppercase; letter-spacing:1px; }
+.amt-val    { font-family:Rajdhani; font-size:3rem; font-weight:700; color:var(--primary); line-height:1.1; }
+.amt-break  { color:var(--text-muted); font-size:.8rem; margin-top:.35rem; }
+
+/* ── QR SECTION ─────────────────────────────────────────────── */
+.qr-section { text-align:center; margin-bottom:1.5rem; }
+.qr-frame   { display:inline-block; background:#fff; border-radius:16px; padding:1rem; box-shadow:0 4px 24px rgba(0,0,0,.35); position:relative; }
+.qr-frame img { width:220px; height:220px; display:block; object-fit:contain; border-radius:8px; }
+.qr-placeholder { width:220px; height:220px; background:rgba(255,255,255,.05); border:2px dashed var(--border); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-muted); font-size:.85rem; gap:.5rem; }
+.upi-chip   { display:inline-flex; align-items:center; gap:.5rem; background:rgba(230,57,70,.1); border:1px solid rgba(230,57,70,.2); color:var(--primary); padding:.4rem 1.1rem; border-radius:20px; font-family:monospace; font-size:.95rem; font-weight:700; margin-top:.75rem; }
+.upi-apps   { margin-top:.6rem; color:var(--text-muted); font-size:.78rem; }
+
+/* ── STEPS ──────────────────────────────────────────────────── */
+.steps-list { display:flex; flex-direction:column; gap:.55rem; margin:.5rem 0 1.25rem; }
+.step-row   { display:flex; gap:10px; align-items:flex-start; font-size:.875rem; }
+.step-num   { width:26px; height:26px; border-radius:50%; background:rgba(230,57,70,.15); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.8rem; flex-shrink:0; margin-top:1px; }
+
+/* ── UTR INPUT ──────────────────────────────────────────────── */
+.utr-wrap   { position:relative; }
+.utr-wrap input { padding-right:3rem; font-family:monospace; font-size:1rem; letter-spacing:1px; text-align:center; }
+.utr-clear  { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1rem; }
+.utr-clear:hover { color:var(--primary); }
+
+/* ── CONFIRM BTN ────────────────────────────────────────────── */
+.confirm-btn { width:100%; padding:.85rem; border:none; border-radius:10px; font-size:1.05rem; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; transition:all .25s; display:flex; align-items:center; justify-content:center; gap:.6rem; }
+.confirm-btn:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 6px 20px rgba(230,57,70,.4); }
+.confirm-btn:disabled { opacity:.6; cursor:not-allowed; }
+
+/* ── SUCCESS OVERLAY ────────────────────────────────────────── */
+.success-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(6px); z-index:9999; display:none; align-items:center; justify-content:center; }
+.success-overlay.show { display:flex; }
+.success-card { background:var(--card-bg); border:1px solid rgba(46,204,113,.35); border-radius:24px; padding:2.75rem 2.5rem; max-width:420px; width:90%; text-align:center; animation:popIn .35s cubic-bezier(.34,1.56,.64,1); }
+@keyframes popIn { from{transform:scale(.7);opacity:0} to{transform:scale(1);opacity:1} }
+.tick-circle { width:80px; height:80px; border-radius:50%; background:rgba(46,204,113,.15); border:3px solid var(--success); display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem; font-size:2.5rem; animation:tickPulse 1.2s ease infinite; }
+@keyframes tickPulse { 0%,100%{box-shadow:0 0 0 0 rgba(46,204,113,.4)} 50%{box-shadow:0 0 0 12px rgba(46,204,113,0)} }
+.success-title { font-family:Rajdhani; font-size:2rem; font-weight:700; color:var(--success); margin-bottom:.5rem; }
+.receipt-badge { display:inline-block; background:rgba(46,204,113,.1); border:1px solid rgba(46,204,113,.3); color:var(--success); padding:.35rem 1.1rem; border-radius:20px; font-family:monospace; font-weight:700; font-size:.95rem; margin:.75rem 0; }
+.progress-bar { height:5px; border-radius:3px; background:rgba(255,255,255,.1); overflow:hidden; margin-top:1.25rem; }
+.progress-fill { height:100%; background:var(--success); border-radius:3px; width:0%; transition:width 3s linear; }
+.redirect-note { color:var(--text-muted); font-size:.8rem; margin-top:.5rem; }
+
+/* ── NO QR WARNING ──────────────────────────────────────────── */
+.no-qr-banner { background:rgba(243,156,18,.1); border:1px solid rgba(243,156,18,.3); border-radius:12px; padding:1rem 1.25rem; display:flex; gap:.75rem; align-items:flex-start; margin-bottom:1.25rem; }
+.no-qr-banner i { color:#f39c12; margin-top:2px; flex-shrink:0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pay-page">
+<div class="pay-wrap">
+
+<!-- ── CARD ── -->
+<div class="pay-card">
+
+  <!-- Header -->
+  <div class="pay-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:Rajdhani;font-size:1.5rem;font-weight:700;color:white;">
+          <i class="fas fa-qrcode"></i> Online Payment
+        </div>
+        <div style="color:rgba(255,255,255,.75);font-size:.85rem;margin-top:2px;">
+          Booking <strong>{{ booking.booking_id }}</strong> · {{ center.name }}
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="color:rgba(255,255,255,.7);font-size:.75rem;">Vehicle</div>
+        <div style="color:white;font-weight:700;font-family:monospace;">{{ booking.vehicle.vehicle_number }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pay-body">
+
+    <!-- Amount Box -->
+    <div class="amt-box">
+      <div class="amt-label">Total Amount Payable</div>
+      <div class="amt-val" id="display-total">₹{{ grand_total|floatformat:2 }}</div>
+      <div class="amt-break">
+        {% if issue_total > 0 %}Issues: ₹{{ issue_total }}{% endif %}
+        {% if extra_total > 0 %} + Extra: ₹{{ extra_total }}{% endif %}
+        {% if parts_total > 0 %} + Parts: ₹{{ parts_total }}{% endif %}
+        + GST 18%: ₹{{ gst|floatformat:2 }}
+      </div>
+    </div>
+
+    <!-- QR Code from service center -->
+    {% if center.payment_qr_code %}
+    <div class="qr-section">
+      <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:.75rem;">
+        Scan the QR code below with any UPI app
+      </p>
+      <div class="qr-frame">
+        <img src="{{ center.payment_qr_code.url }}" alt="Payment QR Code — {{ center.name }}">
+      </div>
+      {% if center.upi_id %}
+      <div class="upi-chip"><i class="fas fa-link" style="font-size:.8rem;"></i>{{ center.upi_id }}</div>
+      {% endif %}
+      <div class="upi-apps">
+        <i class="fas fa-mobile-alt"></i> GPay · PhonePe · Paytm · BHIM · any UPI app
+      </div>
+    </div>
+    {% else %}
+    <!-- No QR uploaded yet — fallback UPI link -->
+    <div class="no-qr-banner">
+      <i class="fas fa-exclamation-triangle"></i>
+      <div>
+        <strong style="color:#f39c12;">QR code not uploaded yet</strong>
+        <div style="color:var(--text-muted);font-size:.82rem;margin-top:3px;">
+          The service center hasn't uploaded their payment QR code. Please pay at the counter, or ask the employee to upload the QR at
+          <strong>/payments/upload-qr/</strong>. You can still enter a UPI reference below after manual payment.
+        </div>
+      </div>
+    </div>
+    <!-- Fallback dynamic QR -->
+    <div class="qr-section">
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=upi://pay?pa={{ center.upi_id|default:'smartrepair@upi' }}%26pn=SmartRepair%26am={{ grand_total|floatformat:2 }}%26cu=INR%26tn={{ booking.booking_id }}"
+             alt="UPI QR Code" onerror="this.parentElement.innerHTML='<div class=qr-placeholder><i class=fas fa-qrcode style=font-size:3rem></i><span>QR unavailable</span><span>Pay at counter</span></div>'">
+      </div>
+      <div class="upi-chip"><i class="fas fa-link" style="font-size:.8rem;"></i>{{ center.upi_id|default:"smartrepair@upi" }}</div>
+      <div class="upi-apps"><i class="fas fa-mobile-alt"></i> GPay · PhonePe · Paytm · BHIM</div>
+    </div>
+    {% endif %}
+
+    <!-- Steps -->
+    <div class="steps-list">
+      <div class="step-row"><div class="step-num">1</div><div>Open your UPI app and <strong>scan the QR code</strong> above</div></div>
+      <div class="step-row"><div class="step-num">2</div><div>Confirm the amount <strong id="step-total" style="color:var(--primary);">₹{{ grand_total|floatformat:2 }}</strong> and complete payment</div></div>
+      <div class="step-row"><div class="step-num">3</div><div>Copy the <strong>12-digit UTR / transaction ID</strong> from your UPI app</div></div>
+      <div class="step-row"><div class="step-num">4</div><div>Enter it below and click <strong>Confirm Payment</strong></div></div>
+    </div>
+
+    <!-- UTR Input + Confirm -->
+    <div id="payment-form">
+      <div class="form-group">
+        <label class="form-label">UPI Transaction Reference (UTR) *</label>
+        <div class="utr-wrap">
+          <input type="text" id="utr-input" class="form-control"
+                 placeholder="12-digit UTR e.g. 412345678901" maxlength="24"
+                 autocomplete="off" inputmode="numeric">
+          <button class="utr-clear" onclick="document.getElementById('utr-input').value=''" title="Clear" type="button">✕</button>
+        </div>
+        <p style="color:var(--text-muted);font-size:.75rem;margin-top:.35rem;">
+          Find the transaction ID in your UPI app notification after payment.
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Discount (₹) — if applicable</label>
+        <input type="number" id="discount-input" class="form-control"
+               value="0" min="0" style="max-width:150px;" oninput="updateTotal()">
+      </div>
+
+      <button class="confirm-btn" id="confirm-btn" onclick="submitPayment()" disabled>
+        <i class="fas fa-check-circle" id="btn-icon"></i>
+        <span id="btn-text">Confirm Payment</span>
+      </button>
+
+      <div style="text-align:center;margin-top:1rem;">
+        <p style="color:var(--text-muted);font-size:.8rem;">
+          Having trouble? Pay at the counter and ask staff to record payment.
+        </p>
+        <a href="{% url 'employee_booking_detail' booking.pk %}" style="color:var(--text-muted);font-size:.8rem;">
+          <i class="fas fa-arrow-left"></i> Back to booking
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /.pay-body -->
+</div><!-- /.pay-card -->
+</div><!-- /.pay-wrap -->
+</div><!-- /.pay-page -->
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- SUCCESS OVERLAY — shown after AJAX confirms payment         -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-card">
+    <div class="tick-circle">✅</div>
+    <div class="success-title">Payment Successful!</div>
+    <p style="color:var(--text-muted);font-size:.9rem;">
+      Your payment has been confirmed for booking
+    </p>
+    <div style="font-family:monospace;font-size:1.1rem;font-weight:700;color:var(--primary);" id="popup-booking-id">
+      {{ booking.booking_id }}
+    </div>
+    <div class="receipt-badge" id="popup-receipt">Generating...</div>
+    <div style="margin-top:.5rem;">
+      <span style="color:var(--text-muted);font-size:.85rem;">Amount paid: </span>
+      <strong style="color:var(--success);font-size:1.1rem;" id="popup-amount">₹{{ grand_total|floatformat:2 }}</strong>
+    </div>
+
+    <div style="margin-top:1.25rem;padding:.9rem;background:rgba(255,255,255,.04);border-radius:10px;">
+      <i class="fas fa-file-invoice" style="color:var(--success);"></i>
+      <span style="color:var(--text-muted);font-size:.85rem;"> Your receipt is being prepared...</span>
+    </div>
+
+    <!-- Progress bar shows time until auto-redirect -->
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="redirect-note" id="redirect-note">Redirecting to receipt in 3s...</div>
+
+    <button class="btn btn-success" style="margin-top:1.25rem;width:100%;" id="view-receipt-btn" onclick="goToReceipt()">
+      <i class="fas fa-receipt"></i> View Receipt Now
+    </button>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const CONFIRM_URL = "{% url 'confirm_online_payment' booking.pk %}";
+const CSRF_TOKEN  = "{{ csrf_token }}";
+const BASE_TOTAL  = {{ grand_total|floatformat:2 }};
+
+let receiptUrl = null;
+let countdownTimer = null;
+
+// ── Enable/disable confirm button based on UTR input ──────────────
+document.getElementById('utr-input').addEventListener('input', function() {
+  const hasUTR = this.value.trim().length >= 6;
+  document.getElementById('confirm-btn').disabled = !hasUTR;
+});
+
+// ── Update displayed total when discount changes ──────────────────
+function updateTotal() {
+  const disc = parseFloat(document.getElementById('discount-input').value) || 0;
+  const net  = Math.max(0, BASE_TOTAL - disc).toFixed(2);
+  document.getElementById('display-total').textContent = '₹' + Number(net).toLocaleString('en-IN', {minimumFractionDigits:2});
+  document.getElementById('step-total').textContent    = '₹' + Number(net).toLocaleString('en-IN', {minimumFractionDigits:2});
+}
+
+// ── Submit payment via AJAX ───────────────────────────────────────
+async function submitPayment() {
+  const utr      = document.getElementById('utr-input').value.trim();
+  const discount = document.getElementById('discount-input').value || '0';
+
+  if (!utr) {
+    showToast('Please enter your UPI transaction reference (UTR).', 'error');
+    return;
+  }
+
+  // Show loading state
+  const btn     = document.getElementById('confirm-btn');
+  const btnText = document.getElementById('btn-text');
+  const btnIcon = document.getElementById('btn-icon');
+  btn.disabled  = true;
+  btnText.textContent = 'Confirming...';
+  btnIcon.className   = 'fas fa-spinner fa-spin';
+
+  try {
+    const res = await fetch(CONFIRM_URL, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': CSRF_TOKEN,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({ upi_reference: utr, discount }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      receiptUrl = data.receipt_url;
+      showSuccess(data);
+    } else {
+      showToast(data.error || 'Payment confirmation failed. Please try again.', 'error');
+      btn.disabled  = false;
+      btnText.textContent = 'Confirm Payment';
+      btnIcon.className   = 'fas fa-check-circle';
+    }
+  } catch (err) {
+    showToast('Network error. Please check your connection and retry.', 'error');
+    btn.disabled  = false;
+    btnText.textContent = 'Confirm Payment';
+    btnIcon.className   = 'fas fa-check-circle';
+  }
+}
+
+// ── Show success overlay + start countdown ────────────────────────
+function showSuccess(data) {
+  document.getElementById('popup-receipt').textContent  = '🧾 ' + data.receipt_number;
+  document.getElementById('popup-amount').textContent   = '₹' + parseFloat(data.total).toLocaleString('en-IN', {minimumFractionDigits:2});
+  document.getElementById('popup-booking-id').textContent = data.booking_id;
+
+  const overlay = document.getElementById('success-overlay');
+  overlay.classList.add('show');
+
+  // Start progress bar
+  const fill = document.getElementById('progress-fill');
+  const note = document.getElementById('redirect-note');
+  setTimeout(() => { fill.style.width = '100%'; }, 50);
+
+  let secs = 3;
+  note.textContent = `Redirecting to receipt in ${secs}s...`;
+  countdownTimer = setInterval(() => {
+    secs--;
+    if (secs <= 0) {
+      clearInterval(countdownTimer);
+      note.textContent = 'Redirecting...';
+      goToReceipt();
+    } else {
+      note.textContent = `Redirecting to receipt in ${secs}s...`;
+    }
+  }, 1000);
+}
+
+function goToReceipt() {
+  if (countdownTimer) clearInterval(countdownTimer);
+  if (receiptUrl) window.location.href = receiptUrl;
+}
+
+// ── Toast helper ─────────────────────────────────────────────────
+function showToast(msg, type='info') {
+  const t = document.createElement('div');
+  t.className = `alert alert-${type === 'error' ? 'error' : 'info'}`;
+  t.style.cssText = 'position:fixed;top:84px;right:20px;z-index:9998;max-width:360px;';
+  t.innerHTML = `<i class="fas fa-${type==='error'?'exclamation-circle':'info-circle'}"></i> ${msg}`;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 4000);
+}
+</script>
+{% endblock %}

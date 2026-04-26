@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Notifications | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="padding:4rem 0;"><div class="container"><div style="max-width:700px;margin:0 auto;">
+<h1 style="font-size:2rem;font-weight:700;margin-bottom:2rem;">Notifications</h1>
+<div style="display:flex;flex-direction:column;gap:0.75rem;">
+{% for n in notifications %}
+<div class="card" style="border-color:{% if not n.is_read %}rgba(230,57,70,0.3){% else %}var(--border){% endif %};">
+<div class="card-body">
+<div style="display:flex;gap:12px;align-items:flex-start;">
+    <div style="width:40px;height:40px;border-radius:10px;background:{% if n.notification_type == 'service_complete' %}rgba(46,204,113,0.1){% elif n.notification_type == 'payment' %}rgba(52,152,219,0.1){% elif n.notification_type == 'booking_confirm' %}rgba(230,57,70,0.1){% else %}rgba(139,148,158,0.1){% endif %};display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;color:{% if n.notification_type == 'service_complete' %}var(--success){% elif n.notification_type == 'payment' %}#3498db{% elif n.notification_type == 'booking_confirm' %}var(--primary){% else %}var(--text-muted){% endif %};">
+        <i class="fas {% if n.notification_type == 'service_complete' %}fa-check-circle{% elif n.notification_type == 'payment' %}fa-receipt{% elif n.notification_type == 'booking_confirm' %}fa-calendar-check{% else %}fa-bell{% endif %}"></i>
+    </div>
+    <div style="flex:1;">
+        <div style="font-weight:700;margin-bottom:4px;">{{ n.title }}</div>
+        <div style="color:var(--text-muted);font-size:0.875rem;">{{ n.message }}</div>
+        <div style="color:var(--text-muted);font-size:0.75rem;margin-top:6px;">{{ n.created_at|date:"d M Y, g:i A" }}</div>
+    </div>
+</div>
+</div></div>
+{% empty %}
+<div style="text-align:center;padding:4rem;color:var(--text-muted);"><i class="fas fa-bell-slash" style="font-size:3rem;margin-bottom:1rem;display:block;"></i><p>No notifications yet</p></div>
+{% endfor %}
+</div>
+</div></div></div>
+{% endblock %}

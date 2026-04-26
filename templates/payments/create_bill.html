@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block title %}Create Bill — {{ booking.booking_id }} | SMART REPAIR{% endblock %}
+{% block extra_css %}
+<style>
+.charge-row{display:grid;grid-template-columns:2.5fr 0.6fr 1.1fr 1fr 0.8fr auto;gap:0.5rem;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:0.875rem;}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:600;}
+.tag-selected{background:rgba(52,152,219,0.15);color:#3498db;}
+.tag-extra{background:rgba(243,156,18,0.15);color:#f39c12;}
+.tag-parts{background:rgba(46,204,113,0.15);color:#2ecc71;}
+.tag-labour{background:rgba(155,89,182,0.15);color:#9b59b6;}
+.tag-service{background:rgba(230,57,70,0.15);color:var(--primary);}
+.totals-box{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:1.5rem;}
+.trow{display:flex;justify-content:space-between;margin-bottom:8px;font-size:0.9rem;}
+.trow.grand{font-size:1.3rem;font-weight:700;color:var(--primary);border-top:2px solid var(--border);padding-top:10px;margin-top:4px;}
+.pfx::before{content:'₹';position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);}
+.pfx{position:relative;}.pfx input{padding-left:24px;}
+</style>
+{% endblock %}
+{% block content %}
+<div style="padding:3rem 0;"><div class="container">
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h1 style="font-size:1.8rem;font-weight:700;">Bill — <span style="color:var(--primary);font-family:monospace;">{{ booking.booking_id }}</span></h1>
+    <p style="color:var(--text-muted);margin-top:2px;">{{ booking.customer.get_full_name }} · <strong style="font-family:monospace;">{{ booking.vehicle.vehicle_number }}</strong> · {{ booking.service_center.city }}</p>
+  </div>
+  <a href="{% url 'employee_booking_detail' booking.pk %}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<div style="display:grid;grid-template-columns:1.7fr 1fr;gap:2rem;">
+<div>
+
+<!-- SELECTED ISSUES section -->
+{% if selected_charges %}
+<div class="card mb-3">
+<div class="card-header"><i class="fas fa-tools" style="color:#3498db;"></i> Customer-Selected Issues <span class="tag tag-selected" style="margin-left:6px;">{{ selected_charges|length }}</span></div>
+<div class="card-body" style="padding:0 1.25rem 0.75rem;">
+<div class="charge-row" style="color:var(--text-muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);padding-bottom:6px;">
+  <div>Description</div><div>Qty</div><div>Price (editable)</div><div>Total</div><div>Type</div><div></div>
+</div>
+{% for c in selected_charges %}
+<div class="charge-row">
+  <div>
+    <div style="font-weight:600;">{{ c.description }}</div>
+    {% if c.repair_issue %}<div style="color:var(--text-muted);font-size:0.72rem;">{{ c.repair_issue.get_category_display }}</div>{% endif %}
+  </div>
+  <div>{{ c.quantity }}</div>
+  <div>
+    <form method="post" action="{% url 'update_charge_price' c.pk %}" style="display:flex;gap:4px;align-items:center;">
+      {% csrf_token %}
+      <div class="pfx" style="width:90px;"><input type="number" name="unit_price" value="{{ c.unit_price }}" class="form-control" style="padding-left:22px;padding-top:5px;padding-bottom:5px;font-size:0.8rem;" min="0" step="1"></div>
+      <button class="btn btn-outline btn-sm" title="Update"><i class="fas fa-check" style="font-size:0.65rem;"></i></button>
+    </form>
+  </div>
+  <div style="font-weight:700;">₹{{ c.total }}</div>
+  <div><span class="tag tag-selected">Issue</span></div>
+  <div><form method="post" action="{% url 'remove_charge' c.pk %}" onsubmit="return confirm('Remove?')">{% csrf_token %}<button class="btn btn-danger btn-sm"><i class="fas fa-times"></i></button></form></div>
+</div>
+{% endfor %}
+</div>
+</div>
+{% endif %}
+
+<!-- EXTRA WORK section -->
+{% if extra_charges or parts_charges or labour_charges %}
+<div class="card mb-3">
+<div class="card-header"><i class="fas fa-plus-circle" style="color:#f39c12;"></i> Employee-Added Charges</div>
+<div class="card-body" style="padding:0 1.25rem 0.75rem;">
+{% for c in extra_charges %}
+<div class="charge-row">
+  <div style="font-weight:600;">{{ c.description }}</div>
+  <div>{{ c.quantity }}</div><div>₹{{ c.unit_price }}</div>
+  <div style="font-weight:700;color:#f39c12;">₹{{ c.total }}</div>
+  <div><span class="tag tag-extra">Extra</span></div>
+  <div><form method="post" action="{% url 'remove_charge' c.pk %}" onsubmit="return confirm('Remove?')">{% csrf_token %}<button class="btn btn-danger btn-sm"><i class="fas fa-times"></i></button></form></div>
+</div>
+{% endfor %}
+{% for c in parts_charges %}
+<div class="charge-row">
+  <div style="font-weight:600;">{{ c.description }}</div>
+  <div>{{ c.quantity }}</div><div>₹{{ c.unit_price }}</div>
+  <div style="font-weight:700;color:#2ecc71;">₹{{ c.total }}</div>
+  <div><span class="tag tag-parts">Parts</span></div>
+  <div><form method="post" action="{% url 'remove_charge' c.pk %}" onsubmit="return confirm('Remove?')">{% csrf_token %}<button class="btn btn-danger btn-sm"><i class="fas fa-times"></i></button></form></div>
+</div>
+{% endfor %}
+{% for c in labour_charges %}
+<div class="charge-row">
+  <div style="font-weight:600;">{{ c.description }}</div>
+  <div>{{ c.quantity }}</div><div>₹{{ c.unit_price }}</div>
+  <div style="font-weight:700;color:#9b59b6;">₹{{ c.total }}</div>
+  <div><span class="tag tag-labour">Labour</span></div>
+  <div><form method="post" action="{% url 'remove_charge' c.pk %}" onsubmit="return confirm('Remove?')">{% csrf_token %}<button class="btn btn-danger btn-sm"><i class="fas fa-times"></i></button></form></div>
+</div>
+{% endfor %}
+</div>
+</div>
+{% endif %}
+
+<!-- ADD NEW CHARGE -->
+<div style="background:rgba(255,255,255,0.03);border:1px dashed var(--border);border-radius:12px;padding:1.25rem;">
+<h4 style="font-family:Rajdhani;font-size:1rem;font-weight:700;margin-bottom:1rem;color:var(--accent);"><i class="fas fa-plus-circle"></i> Add Repair Charge</h4>
+<form method="post" action="{% url 'add_extra_charge' booking.pk %}">
+{% csrf_token %}
+<div style="display:grid;grid-template-columns:2fr 0.6fr 1fr 0.9fr auto;gap:0.6rem;align-items:end;">
+  <div class="form-group" style="margin:0;"><label class="form-label">Description *</label><input type="text" name="description" class="form-control" placeholder="e.g. New brake pads" required></div>
+  <div class="form-group" style="margin:0;"><label class="form-label">Qty</label><input type="number" name="quantity" class="form-control" value="1" min="0.1" step="0.1"></div>
+  <div class="form-group" style="margin:0;"><label class="form-label">Price (₹)</label><div class="pfx"><input type="number" name="unit_price" class="form-control" placeholder="0" min="0" required></div></div>
+  <div class="form-group" style="margin:0;"><label class="form-label">Type</label>
+    <select name="charge_type" class="form-control">
+      <option value="extra">Extra Work</option>
+      <option value="parts">Parts</option>
+      <option value="labour">Labour</option>
+      <option value="diagnosed">Diagnosed</option>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-warning" style="height:42px;white-space:nowrap;"><i class="fas fa-plus"></i> Add</button>
+</div>
+</form>
+</div>
+
+</div>
+
+<!-- RIGHT: Totals & Payment -->
+<div>
+<div class="totals-box mb-3">
+  <h4 style="font-family:Rajdhani;font-size:1.2rem;font-weight:700;margin-bottom:1.25rem;"><i class="fas fa-calculator text-primary"></i> Bill Summary</h4>
+  {% if issue_total > 0 %}<div class="trow"><span style="color:#3498db;">Customer Issues</span><span>₹{{ issue_total }}</span></div>{% endif %}
+  {% if extra_total > 0 %}<div class="trow"><span style="color:#f39c12;">Extra Work</span><span>₹{{ extra_total }}</span></div>{% endif %}
+  {% if parts_total > 0 %}<div class="trow"><span style="color:#2ecc71;">Parts</span><span>₹{{ parts_total }}</span></div>{% endif %}
+  {% if labour_total > 0 %}<div class="trow"><span style="color:#9b59b6;">Labour</span><span>₹{{ labour_total }}</span></div>{% endif %}
+  <div class="trow" style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
+    <span style="color:var(--text-muted);">Subtotal</span><span>₹{{ subtotal }}</span>
+  </div>
+  <div class="trow"><span style="color:var(--text-muted);">GST (18%)</span><span>₹{{ gst|floatformat:2 }}</span></div>
+  <div class="trow grand"><span>Grand Total</span><span>₹{{ grand_total|floatformat:2 }}</span></div>
+</div>
+
+<div class="card">
+<div class="card-header"><i class="fas fa-money-bill-wave text-primary"></i> Finalize Payment</div>
+<div class="card-body">
+<form method="post" action="{% url 'finalize_payment' booking.pk %}">
+{% csrf_token %}
+<div class="form-group">
+  <label class="form-label">Payment Method</label>
+  <select name="payment_method" class="form-control" onchange="this.value==='online'||this.value==='upi'?document.getElementById('qr-tip').style.display='block':document.getElementById('qr-tip').style.display='none'">
+    <option value="cash">💵 Cash</option>
+    <option value="online">📱 Online (UPI/QR)</option>
+    <option value="card">💳 Card</option>
+    <option value="upi">📲 UPI Direct</option>
+  </select>
+</div>
+<div id="qr-tip" style="display:none;background:rgba(52,152,219,0.08);border:1px solid rgba(52,152,219,0.2);border-radius:8px;padding:0.75rem;margin-bottom:1rem;text-align:center;font-size:0.83rem;">
+  <i class="fas fa-qrcode" style="display:block;font-size:1.3rem;margin-bottom:4px;color:#3498db;"></i>
+  Show customer the <a href="{% url 'online_payment' booking.pk %}" target="_blank" style="color:var(--primary);font-weight:700;">UPI QR Payment Page</a>
+</div>
+<div class="form-group">
+  <label class="form-label">Discount (₹)</label>
+  <div class="pfx"><input type="number" name="discount" class="form-control" value="0" min="0"></div>
+</div>
+<div class="form-group">
+  <label class="form-label">Notes</label>
+  <input type="text" name="notes" class="form-control" placeholder="Optional payment note...">
+</div>
+<button type="submit" class="btn btn-success w-100 btn-lg"><i class="fas fa-check-circle"></i> Finalize &amp; Print Receipt</button>
+</form>
+<div style="margin-top:0.75rem;">
+<a href="{% url 'online_payment' booking.pk %}" class="btn btn-outline w-100"><i class="fas fa-qrcode"></i> UPI QR Code for Customer</a>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</div></div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Complete Service | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="padding:3rem 0;">
+<div class="container">
+<div style="max-width:700px;margin:0 auto;">
+<h2 style="font-size:1.8rem;font-weight:700;margin-bottom:0.5rem;">Complete <span style="color:var(--primary);">Service</span></h2>
+<p style="color:var(--text-muted);margin-bottom:2rem;">Booking: <code style="color:var(--primary);">{{ booking.booking_id }}</code> — {{ booking.vehicle.vehicle_number }} ({{ booking.vehicle.make }} {{ booking.vehicle.model }})</p>
+
+<form method="post">
+{% csrf_token %}
+<div class="card mb-3">
+<div class="card-header"><i class="fas fa-clipboard-check text-primary"></i> Service Details</div>
+<div class="card-body">
+<div class="form-group">
+    <label class="form-label">Work Done * (describe all work performed)</label>
+    <textarea name="work_done" class="form-control" rows="4" placeholder="e.g. Engine oil changed (5W-30, 3.5L), oil filter replaced, brake pads inspected — front OK, rear 40% worn..." required></textarea>
+</div>
+<div class="form-group">
+    <label class="form-label">Parts Replaced</label>
+    <textarea name="parts_replaced" class="form-control" rows="2" placeholder="e.g. Oil filter (OEM), air filter, rear brake pads"></textarea>
+</div>
+<div class="form-group">
+    <label class="form-label">Next Service KM Reading</label>
+    <input type="number" name="next_service_km" class="form-control" placeholder="e.g. 15000" style="max-width:200px;">
+</div>
+<div class="form-group">
+    <label class="form-label">Technician Notes (internal)</label>
+    <textarea name="technician_notes" class="form-control" rows="2" placeholder="Any notes for future reference..."></textarea>
+</div>
+</div>
+</div>
+
+<div style="background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
+    <i class="fas fa-bell" style="color:var(--success);"></i> <strong>Customer will be notified</strong> automatically via SMS when you mark service as completed.
+</div>
+
+<div style="display:flex;gap:1rem;">
+    <a href="{% url 'employee_booking_detail' booking.pk %}" class="btn btn-outline btn-lg"><i class="fas fa-arrow-left"></i> Back</a>
+    <button type="submit" class="btn btn-success btn-lg" style="flex:1;"><i class="fas fa-check-circle"></i> Mark as Completed & Notify Customer</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+{% endblock %}

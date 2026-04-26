@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block title %}Book Service - Step 1 | SMART REPAIR{% endblock %}
+{% block extra_css %}
+<style>
+.book-page{padding:4rem 0;}
+.step-bar{display:flex;gap:0;margin-bottom:3rem;}
+.step-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;}
+.step-item::after{content:'';position:absolute;left:50%;right:-50%;top:22px;height:2px;background:var(--border);}
+.step-item:last-child::after{display:none;}
+.step-circle{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;z-index:1;border:2px solid var(--border);background:var(--dark2);color:var(--text-muted);}
+.step-item.active .step-circle{background:var(--primary);border-color:var(--primary);color:white;}
+.step-item.done .step-circle{background:var(--success);border-color:var(--success);color:white;}
+.step-label{font-size:0.72rem;color:var(--text-muted);text-align:center;}
+.step-item.active .step-label{color:var(--primary);font-weight:600;}
+.btype-label{flex:1;padding:1rem 1.25rem;border:2px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;}
+.btype-label:hover{border-color:var(--primary);}
+.center-card{padding:1.25rem;border-radius:14px;border:2px solid var(--border);cursor:pointer;transition:all 0.2s;background:var(--card-bg);}
+.center-card:hover,.center-card.selected{border-color:var(--primary);background:rgba(230,57,70,0.05);}
+.vtype-btn{padding:0.6rem 1rem;border-radius:10px;border:2px solid var(--border);background:var(--card-bg);cursor:pointer;transition:all 0.2s;font-size:0.85rem;font-weight:600;text-align:center;}
+.vtype-btn:hover,.vtype-btn.selected{border-color:var(--primary);background:rgba(230,57,70,0.08);color:var(--primary);}
+</style>
+{% endblock %}
+{% block content %}
+<div class="book-page"><div class="container"><div style="max-width:960px;margin:0 auto;">
+
+<div class="step-bar">
+  <div class="step-item active"><div class="step-circle">1</div><div class="step-label">Center &amp; Date</div></div>
+  <div class="step-item"><div class="step-circle">2</div><div class="step-label">Slot &amp; Issues</div></div>
+  <div class="step-item"><div class="step-circle">3</div><div class="step-label">Confirm</div></div>
+</div>
+
+<form method="post" action="{% url 'book_step2' %}">
+{% csrf_token %}
+
+<!-- Booking Type -->
+<div class="card mb-4">
+<div class="card-header">Booking Type</div>
+<div class="card-body"><div style="display:flex;gap:1rem;">
+  <label class="btype-label" id="lbl-online">
+    <input type="radio" name="booking_type" value="online" checked style="accent-color:var(--primary);" onchange="highlightType()">
+    <div><div style="font-weight:700;"><i class="fas fa-laptop" style="color:var(--primary);"></i> Online Booking</div><div style="color:var(--text-muted);font-size:0.8rem;">Reserve a time slot in advance</div></div>
+  </label>
+  <label class="btype-label" id="lbl-offline">
+    <input type="radio" name="booking_type" value="offline" style="accent-color:var(--primary);" onchange="highlightType()">
+    <div><div style="font-weight:700;"><i class="fas fa-walking" style="color:#3498db;"></i> Walk-In / Offline</div><div style="color:var(--text-muted);font-size:0.8rem;">Visit center without prior slot</div></div>
+  </label>
+</div></div>
+</div>
+
+<!-- Vehicle Type -->
+<div class="card mb-4">
+<div class="card-header">Vehicle Type</div>
+<div class="card-body">
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;">
+  {% for val,label,icon in vtype_choices %}
+  <label class="vtype-btn {% if val == '4w' %}selected{% endif %}" id="vt-{{ val }}">
+    <input type="radio" name="vehicle_type" value="{{ val }}" {% if val == '4w' %}checked{% endif %} style="display:none;" onchange="highlightVtype('{{ val }}')">
+    {{ icon }} {{ label }}
+  </label>
+  {% endfor %}
+  <label class="vtype-btn" id="vt-2w"><input type="radio" name="vehicle_type" value="2w" style="display:none;" onchange="highlightVtype('2w')">🏍️ Two Wheeler</label>
+  <label class="vtype-btn" id="vt-3w"><input type="radio" name="vehicle_type" value="3w" style="display:none;" onchange="highlightVtype('3w')">🛺 Three Wheeler</label>
+  <label class="vtype-btn selected" id="vt-4w"><input type="radio" name="vehicle_type" value="4w" checked style="display:none;" onchange="highlightVtype('4w')">🚗 Four Wheeler</label>
+  <label class="vtype-btn" id="vt-heavy"><input type="radio" name="vehicle_type" value="heavy" style="display:none;" onchange="highlightVtype('heavy')">🚛 Heavy Vehicle</label>
+</div>
+</div>
+</div>
+
+<!-- Date -->
+<div class="card mb-4">
+<div class="card-header">Service Date</div>
+<div class="card-body">
+  <input type="date" name="date" id="date-input" class="form-control" style="max-width:280px;" required>
+  <p style="color:var(--text-muted);font-size:0.8rem;margin-top:0.5rem;"><i class="fas fa-info-circle"></i> Open Monday to Saturday. Closed Sundays &amp; public holidays.</p>
+</div>
+</div>
+
+<!-- Service Center -->
+<div class="card mb-4">
+<div class="card-header">Choose Service Center</div>
+<div class="card-body">
+  <div style="margin-bottom:1rem;display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+    <input type="text" id="center-search" placeholder="🔍 Search city or center..." class="form-control" style="max-width:320px;" oninput="filterCenters(this.value)">
+    <select id="city-filter" class="form-control" style="max-width:200px;" onchange="filterCity(this.value)">
+      <option value="">All Cities</option>
+      {% regroup centers by city as city_list %}
+      {% for city_group in city_list %}
+      <option value="{{ city_group.grouper }}">{{ city_group.grouper }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;max-height:380px;overflow-y:auto;" id="centers-grid">
+  {% for c in centers %}
+  <label class="center-card" onclick="selectCenter(this)">
+    <input type="radio" name="service_center" value="{{ c.pk }}" style="display:none;" required>
+    <div style="font-weight:700;font-size:0.95rem;"><i class="fas fa-map-marker-alt" style="color:var(--primary);"></i> {{ c.name|cut:"SMART REPAIR - " }}</div>
+    <div style="color:var(--text-muted);font-size:0.8rem;margin-top:4px;">{{ c.city }}, {{ c.district }}</div>
+    <div style="color:var(--text-muted);font-size:0.78rem;"><i class="fas fa-phone"></i> {{ c.phone }}</div>
+    <div style="color:var(--text-muted);font-size:0.78rem;"><i class="fas fa-clock"></i> {{ c.working_hours }}</div>
+  </label>
+  {% endfor %}
+  </div>
+</div>
+</div>
+
+<div style="text-align:right;">
+  <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-arrow-right"></i> Next: Choose Slot &amp; Issues</button>
+</div>
+</form>
+</div></div></div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('date-input').min = today;
+document.getElementById('date-input').addEventListener('change', function(){
+    if(new Date(this.value).getDay()===0){alert('Sundays are closed. Please select another date.');this.value='';}
+});
+function selectCenter(el){
+    document.querySelectorAll('.center-card').forEach(c=>c.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked=true;
+}
+function filterCenters(v){
+    v=v.toLowerCase();
+    document.querySelectorAll('.center-card').forEach(c=>{c.style.display=c.textContent.toLowerCase().includes(v)?'':'none';});
+}
+function filterCity(v){
+    document.querySelectorAll('.center-card').forEach(c=>{
+        const city=c.querySelector('div:nth-child(2)').textContent.trim();
+        c.style.display=(!v||city.startsWith(v))?'':'none';
+    });
+}
+function highlightType(){
+    document.querySelectorAll('[name=booking_type]').forEach(r=>{
+        const lbl=r.closest('label');
+        lbl.style.borderColor=r.checked?'var(--primary)':'var(--border)';
+        lbl.style.background=r.checked?'rgba(230,57,70,0.05)':'transparent';
+    });
+}
+function highlightVtype(val){
+    ['2w','3w','4w','heavy'].forEach(v=>{
+        const el=document.getElementById('vt-'+v);
+        if(el){el.classList.toggle('selected',v===val);}
+    });
+    document.querySelector(`input[value="${val}"][name=vehicle_type]`).checked=true;
+}
+// remove duplicate radio labels — keep only one set of vtype buttons
+document.querySelectorAll('.vtype-btn').forEach((b,i)=>{if(i>=4)b.remove();});
+highlightType();
+</script>
+{% endblock %}

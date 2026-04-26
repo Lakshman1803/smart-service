@@ -1,0 +1,433 @@
+{% extends 'base.html' %}
+{% block title %}Employee Dashboard — SMART REPAIR{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── LAYOUT ──────────────────────────────────────────────────── */
+body { background:#0f1215; color:#e9ecef; }
+.dash-header { padding:2.5rem 0; background:linear-gradient(180deg,#161b22 0%,#0f1215 100%); border-bottom:1px solid #30363d; }
+.dash-body   { padding:2.5rem 0; background:#0f1215; }
+
+/* ── STAT CARDS ──────────────────────────────────────────────── */
+.stat-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:1.25rem; margin-bottom:2rem; }
+.stat-card  { background:#1c2128; border:1px solid #30363d; border-radius:14px; padding:1.5rem; position:relative; overflow:hidden; transition:transform .2s,border-color .2s; }
+.stat-card:hover { transform:translateY(-3px); border-color:#444c56; }
+.stat-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; border-radius:2px 0 0 2px; }
+.stat-card.pending::before  { background:#f39c12; }
+.stat-card.progress::before { background:#3498db; }
+.stat-card.completed::before{ background:#2ecc71; }
+.stat-card.monthly::before  { background:#a371f7; }
+.stat-card.total::before    { background:var(--primary); }
+.stat-card.cancelled::before{ background:#e74c3c; }
+.stat-val { font-family:Rajdhani; font-size:2.6rem; font-weight:700; line-height:1; }
+.stat-lbl { color:#768390; font-size:.75rem; text-transform:uppercase; letter-spacing:1px; margin-top:.35rem; }
+.stat-icon{ position:absolute; right:1.25rem; bottom:1.25rem; opacity:.08; font-size:3rem; }
+
+/* ── QUICK ACTIONS ───────────────────────────────────────────── */
+.qa-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:.9rem; margin-bottom:2rem; }
+.qa-btn  { display:flex; flex-direction:column; align-items:center; gap:8px; padding:1.1rem .75rem; border-radius:14px; border:1px solid #30363d; background:#22272e; cursor:pointer; text-decoration:none; color:#adbac7; transition:all .2s; font-size:.8rem; text-align:center; }
+.qa-btn:hover { background:#2d333b; border-color:var(--primary); color:var(--primary); transform:translateY(-2px); }
+.qa-btn i { font-size:1.4rem; }
+
+/* ── EXPORT BAR ──────────────────────────────────────────────── */
+.export-bar { background:#161b22; border:1px solid #30363d; border-radius:14px; padding:1.25rem 1.5rem; margin-bottom:2rem; }
+.export-title { font-size:.8rem; text-transform:uppercase; letter-spacing:1px; color:#768390; margin-bottom:.9rem; font-weight:700; }
+.export-btns { display:flex; flex-wrap:wrap; gap:.65rem; }
+.dl-btn { display:inline-flex; align-items:center; gap:.5rem; padding:.5rem 1.1rem; border-radius:8px; font-size:.82rem; font-weight:700; text-decoration:none; transition:all .18s; border:1px solid transparent; cursor:pointer; }
+.dl-btn:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,0,0,.4); }
+.dl-btn.green  { background:rgba(33,150,83,.15); border-color:rgba(33,150,83,.4); color:#2ecc71; }
+.dl-btn.green:hover  { background:rgba(33,150,83,.3); }
+.dl-btn.orange { background:rgba(243,156,18,.12); border-color:rgba(243,156,18,.35); color:#f39c12; }
+.dl-btn.orange:hover { background:rgba(243,156,18,.25); }
+.dl-btn.blue   { background:rgba(52,152,219,.12); border-color:rgba(52,152,219,.35); color:#3498db; }
+.dl-btn.blue:hover   { background:rgba(52,152,219,.25); }
+.dl-btn.red    { background:rgba(231,76,60,.12); border-color:rgba(231,76,60,.35); color:#e74c3c; }
+.dl-btn.red:hover    { background:rgba(231,76,60,.25); }
+.dl-btn.purple { background:rgba(163,113,247,.12); border-color:rgba(163,113,247,.35); color:#a371f7; }
+.dl-btn.purple:hover { background:rgba(163,113,247,.25); }
+.dl-btn.white  { background:rgba(255,255,255,.06); border-color:#444c56; color:#adbac7; }
+.dl-btn.white:hover  { background:rgba(255,255,255,.12); }
+
+/* ── TABLE ───────────────────────────────────────────────────── */
+.data-card { background:#1c2128; border:1px solid #30363d; border-radius:14px; overflow:hidden; }
+.data-card .card-header { background:#22272e; border-bottom:1px solid #30363d; padding:1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
+.data-table { width:100%; border-collapse:collapse; }
+.data-table thead th { background:#22272e; color:#768390; padding:.75rem 1rem; font-size:.72rem; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #444c56; white-space:nowrap; }
+.data-table tbody td { padding:.85rem 1rem; border-bottom:1px solid #2d333b; vertical-align:middle; font-size:.875rem; color:#adbac7; }
+.data-table tbody tr:hover td { background:rgba(255,255,255,.025); }
+.data-table tbody tr:last-child td { border-bottom:none; }
+.status-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+.s-pending   { background:rgba(243,156,18,.15); color:#f39c12; border:1px solid rgba(243,156,18,.25); }
+.s-confirmed { background:rgba(52,152,219,.15); color:#3498db; border:1px solid rgba(52,152,219,.25); }
+.s-progress  { background:rgba(33,150,83,.15); color:#2ecc71; border:1px solid rgba(33,150,83,.25); }
+.s-completed { background:rgba(46,204,113,.15); color:#2ecc71; border:1px solid rgba(46,204,113,.3); }
+.s-cancelled { background:rgba(231,76,60,.15); color:#e74c3c; border:1px solid rgba(231,76,60,.25); }
+.type-online  { background:rgba(52,152,219,.12); color:#3498db; border:1px solid rgba(52,152,219,.2); border-radius:10px; padding:2px 8px; font-size:.7rem; }
+.type-offline { background:rgba(139,148,158,.12); color:#8b949e; border:1px solid rgba(139,148,158,.2); border-radius:10px; padding:2px 8px; font-size:.7rem; }
+
+/* ── SEARCH / FILTER BAR ─────────────────────────────────────── */
+.filter-row { display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; margin-bottom:1.5rem; }
+.filter-row input, .filter-row select { background:#1c2128; border:1px solid #30363d; color:#adbac7; padding:.45rem .75rem; border-radius:8px; font-size:.85rem; }
+.filter-row input:focus, .filter-row select:focus { outline:none; border-color:#3498db; }
+.filter-row input::placeholder { color:#4a5568; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── HEADER ──────────────────────────────────────────────────── -->
+<div class="dash-header">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between flex-wrap" style="gap:1rem;">
+      <div>
+        <h1 style="font-size:2rem;font-weight:800;letter-spacing:-1px;margin-bottom:.3rem;">
+          <i class="fas fa-tools" style="color:#f39c12;"></i> Service Terminal
+        </h1>
+        <p style="color:#768390;margin:0;">
+          <i class="fas fa-circle text-success" style="font-size:.6rem;"></i>
+          {% if employee %}
+            Connected to <strong style="color:#adbac7;">{{ employee.service_center.name }}</strong>
+            · {{ employee.service_center.city }}
+          {% else %}
+            Admin View — All Centers
+          {% endif %}
+        </p>
+      </div>
+      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+        <div style="text-align:right;">
+          <div style="font-weight:700;color:#e9ecef;">{{ request.user.get_full_name }}</div>
+          <div style="font-size:.78rem;color:#768390;">
+            {{ employee.employee_id|default:"ADMIN" }} · {{ employee.designation|upper|default:"ADMINISTRATOR" }}
+          </div>
+        </div>
+        <a href="{% url 'my_profile' %}" class="dl-btn white" style="text-decoration:none;">
+          <i class="fas fa-user-circle"></i> Profile
+        </a>
+        <a href="{% url 'logout' %}" class="dl-btn red" style="text-decoration:none;">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── BODY ───────────────────────────────────────────────────────── -->
+<div class="dash-body">
+<div class="container">
+
+  <!-- ── STAT CARDS ── -->
+  <div class="stat-cards">
+    <div class="stat-card pending">
+      <div class="stat-val" style="color:#f39c12;">{{ pending }}</div>
+      <div class="stat-lbl">Pending</div>
+      <i class="fas fa-hourglass-half stat-icon"></i>
+    </div>
+    <div class="stat-card progress">
+      <div class="stat-val" style="color:#3498db;">{{ in_progress }}</div>
+      <div class="stat-lbl">In Progress</div>
+      <i class="fas fa-wrench stat-icon"></i>
+    </div>
+    <div class="stat-card completed">
+      <div class="stat-val" style="color:#2ecc71;">{{ completed_today }}</div>
+      <div class="stat-lbl">Done Today</div>
+      <i class="fas fa-check-double stat-icon"></i>
+    </div>
+    <div class="stat-card monthly">
+      <div class="stat-val" style="color:#a371f7;">{{ total_this_month }}</div>
+      <div class="stat-lbl">This Month</div>
+      <i class="fas fa-calendar-alt stat-icon"></i>
+    </div>
+    <div class="stat-card total">
+      <div class="stat-val" style="color:var(--primary);">{{ confirmed_count }}</div>
+      <div class="stat-lbl">Confirmed</div>
+      <i class="fas fa-clipboard-check stat-icon"></i>
+    </div>
+    <div class="stat-card cancelled">
+      <div class="stat-val" style="color:#e74c3c;">{{ cancelled_count }}</div>
+      <div class="stat-lbl">Cancelled</div>
+      <i class="fas fa-times-circle stat-icon"></i>
+    </div>
+    <div class="stat-card" style="border-left:4px solid #f39c12;">
+      <div class="stat-val" style="color:#f39c12;">{{ total_all }}</div>
+      <div class="stat-lbl">Total Bookings</div>
+      <i class="fas fa-database stat-icon"></i>
+    </div>
+  </div>
+
+  <!-- ── QUICK ACTIONS ── -->
+  <div class="qa-grid">
+    <a href="{% url 'employee_bookings' %}" class="qa-btn">
+      <i class="fas fa-layer-group" style="color:var(--primary);"></i>All Bookings
+    </a>
+    <a href="{% url 'add_customer_vehicle' %}" class="qa-btn">
+      <i class="fas fa-plus-circle" style="color:#3498db;"></i>New Entry
+    </a>
+    <a href="{% url 'upload_qr_code' %}" class="qa-btn">
+      <i class="fas fa-qrcode" style="color:#2ecc71;"></i>Update QR
+    </a>
+    <a href="{% url 'employee_bookings' %}?status=pending" class="qa-btn">
+      <i class="fas fa-clock" style="color:#f39c12;"></i>Pending Queue
+    </a>
+    <a href="{% url 'employee_bookings' %}?status=in_progress" class="qa-btn">
+      <i class="fas fa-wrench" style="color:#3498db;"></i>In Progress
+    </a>
+    <a href="{% url 'notifications' %}" class="qa-btn">
+      <i class="fas fa-bell" style="color:#a371f7;"></i>Notifications
+    </a>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- EXCEL / CSV DOWNLOAD BAR                                       -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="export-bar">
+    <div class="export-title">
+      <i class="fas fa-file-excel" style="color:#2ecc71;"></i>
+      &nbsp;Download Data as Excel / CSV
+      <span style="color:#444c56;font-weight:400;font-size:.72rem;margin-left:.5rem;">
+        — Opens directly in Microsoft Excel, Google Sheets, or LibreOffice
+      </span>
+    </div>
+    <div class="export-btns">
+
+      <!-- All bookings -->
+      <a href="{% url 'export_bookings_excel' %}" class="dl-btn green">
+        <i class="fas fa-download"></i> All Bookings
+      </a>
+
+      <!-- By status -->
+      <a href="{% url 'export_bookings_excel' %}?status=pending" class="dl-btn orange">
+        <i class="fas fa-hourglass-half"></i> Pending Only
+      </a>
+      <a href="{% url 'export_bookings_excel' %}?status=in_progress" class="dl-btn blue">
+        <i class="fas fa-wrench"></i> In Progress
+      </a>
+      <a href="{% url 'export_bookings_excel' %}?status=completed" class="dl-btn green">
+        <i class="fas fa-check-circle"></i> Completed
+      </a>
+      <a href="{% url 'export_bookings_excel' %}?status=cancelled" class="dl-btn red">
+        <i class="fas fa-times-circle"></i> Cancelled
+      </a>
+      <a href="{% url 'export_bookings_excel' %}?status=confirmed" class="dl-btn blue">
+        <i class="fas fa-calendar-check"></i> Confirmed
+      </a>
+
+      <!-- Today's date filter (JS appends today's date) -->
+      <a href="#" class="dl-btn purple" id="today-dl-btn">
+        <i class="fas fa-calendar-day"></i> Today's Bookings
+      </a>
+
+      <!-- This month -->
+      <a href="#" class="dl-btn white" id="month-dl-btn">
+        <i class="fas fa-calendar-alt"></i> This Month
+      </a>
+
+    </div>
+
+    <div style="margin-top:.85rem;padding-top:.85rem;border-top:1px solid #30363d;font-size:.78rem;color:#4a5568;">
+      <i class="fas fa-info-circle" style="color:#3498db;"></i>
+      &nbsp;Each export includes: Booking ID, Customer, Vehicle, Issues, Services, Status, Payment Amount, GST, Receipt No., and more — <strong style="color:#768390;">{{ total_all }} total records</strong> for your center.
+      &nbsp;|&nbsp;
+      <i class="fas fa-table" style="color:#2ecc71;"></i>
+      &nbsp;Tip: Open with Excel → <code style="color:#adbac7;">Data → From Text/CSV</code> if prompted.
+    </div>
+  </div>
+
+  <!-- ── BOOKINGS TABLE ── -->
+  <div class="data-card">
+    <div class="card-header">
+      <div style="display:flex;align-items:center;gap:.75rem;">
+        <i class="fas fa-clipboard-list" style="color:var(--primary);"></i>
+        <span style="font-weight:700;color:#adbac7;">Recent Bookings</span>
+        <span style="background:#22272e;border:1px solid #444c56;color:#768390;padding:2px 10px;border-radius:10px;font-size:.75rem;">
+          Last 20
+        </span>
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center;">
+        <a href="{% url 'export_bookings_excel' %}" class="dl-btn green" style="font-size:.78rem;padding:.4rem .9rem;">
+          <i class="fas fa-file-excel"></i> Export Excel
+        </a>
+        <a href="{% url 'employee_bookings' %}" class="dl-btn white" style="font-size:.78rem;padding:.4rem .9rem;">
+          View All <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Search bar -->
+    <div style="padding:1rem 1.5rem;border-bottom:1px solid #30363d;">
+      <div class="filter-row">
+        <input type="text" id="search-input" placeholder="🔍  Search booking ID, customer, vehicle..." style="flex:1;min-width:220px;">
+        <select id="status-filter">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <select id="type-filter">
+          <option value="">All Types</option>
+          <option value="online">Online</option>
+          <option value="offline">Offline</option>
+        </select>
+        <button onclick="clearFilters()" class="dl-btn white" style="font-size:.8rem;border:none;cursor:pointer;">
+          <i class="fas fa-times"></i> Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div style="overflow-x:auto;">
+      <table class="data-table" id="bookings-table">
+        <thead>
+          <tr>
+            <th onclick="sortTable(0)" style="cursor:pointer;" title="Click to sort">Booking ID ↕</th>
+            <th>Customer</th>
+            <th>Vehicle</th>
+            <th onclick="sortTable(3)" style="cursor:pointer;" title="Click to sort">Date ↕</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Est. Total</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          {% for b in bookings %}
+          <tr data-status="{{ b.status }}" data-type="{{ b.booking_type }}">
+            <td>
+              <code style="color:var(--primary);font-size:.82rem;background:rgba(230,57,70,.07);padding:2px 8px;border-radius:4px;">
+                {{ b.booking_id }}
+              </code>
+            </td>
+            <td>
+              <div style="font-weight:600;">{{ b.customer.get_full_name|default:"—" }}</div>
+              <div style="color:#768390;font-size:.75rem;">{{ b.customer.mobile_number }}</div>
+            </td>
+            <td>
+              <div style="font-family:monospace;font-weight:700;color:#e9ecef;">{{ b.vehicle.vehicle_number }}</div>
+              <div style="color:#768390;font-size:.75rem;">{{ b.vehicle.make }} {{ b.vehicle.model }}</div>
+            </td>
+            <td>
+              <div>{{ b.booking_date|date:"d M Y" }}</div>
+              <div style="color:#768390;font-size:.75rem;">{{ b.booking_time|time:"g:i A" }}</div>
+            </td>
+            <td>
+              <span class="{% if b.booking_type == 'online' %}type-online{% else %}type-offline{% endif %}">
+                {{ b.booking_type|upper }}
+              </span>
+            </td>
+            <td>
+              <span class="status-badge
+                {% if b.status == 'pending' %}s-pending
+                {% elif b.status == 'confirmed' %}s-confirmed
+                {% elif b.status == 'in_progress' %}s-progress
+                {% elif b.status == 'completed' %}s-completed
+                {% elif b.status == 'cancelled' %}s-cancelled
+                {% else %}s-confirmed{% endif %}">
+                {{ b.status|upper }}
+              </span>
+            </td>
+            <td>
+              <span style="color:var(--primary);font-weight:700;">
+                {% if b.estimated_total %}₹{{ b.estimated_total }}{% else %}—{% endif %}
+              </span>
+            </td>
+            <td>
+              <a href="{% url 'employee_booking_detail' b.pk %}" class="dl-btn blue" style="font-size:.78rem;padding:.35rem .85rem;text-decoration:none;">
+                <i class="fas fa-eye"></i> View
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" style="text-align:center;padding:3rem;color:#768390;">
+              <i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:.75rem;opacity:.4;"></i>
+              No bookings yet for this center.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table footer -->
+    <div style="padding:1rem 1.5rem;border-top:1px solid #30363d;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+      <div style="color:#768390;font-size:.8rem;" id="row-count">
+        Showing {{ bookings|length }} of {{ total_all }} total bookings
+      </div>
+      <a href="{% url 'export_bookings_excel' %}" class="dl-btn green" style="font-size:.78rem;">
+        <i class="fas fa-file-excel"></i> Download All {{ total_all }} Rows as Excel
+      </a>
+    </div>
+
+  </div><!-- /.data-card -->
+
+</div><!-- /.container -->
+</div><!-- /.dash-body -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── DATE-BASED EXPORT BUTTONS ─────────────────────────────────────
+(function() {
+  const base = "{% url 'export_bookings_excel' %}";
+  const today = new Date();
+  const fmt = d => d.toISOString().split('T')[0]; // YYYY-MM-DD
+
+  // Today
+  document.getElementById('today-dl-btn').href = base + '?date=' + fmt(today);
+
+  // This month
+  const m = String(today.getMonth()+1).padStart(2,'0');
+  const y = today.getFullYear();
+  document.getElementById('month-dl-btn').href = base + '?month=' + y + '-' + m;
+})();
+
+// ── TABLE SEARCH ─────────────────────────────────────────────────
+document.getElementById('search-input').addEventListener('input', filterTable);
+document.getElementById('status-filter').addEventListener('change', filterTable);
+document.getElementById('type-filter').addEventListener('change', filterTable);
+
+function filterTable() {
+  const q      = document.getElementById('search-input').value.toLowerCase();
+  const status = document.getElementById('status-filter').value;
+  const type   = document.getElementById('type-filter').value;
+  const rows   = document.querySelectorAll('#table-body tr');
+  let visible  = 0;
+  rows.forEach(row => {
+    const text   = row.textContent.toLowerCase();
+    const rStatus = row.dataset.status || '';
+    const rType   = row.dataset.type   || '';
+    const match = (!q || text.includes(q))
+               && (!status || rStatus === status)
+               && (!type   || rType   === type);
+    row.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  document.getElementById('row-count').textContent =
+    `Showing ${visible} of {{ total_all }} total bookings`;
+}
+
+function clearFilters() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('status-filter').value = '';
+  document.getElementById('type-filter').value = '';
+  filterTable();
+}
+
+// ── TABLE SORT ───────────────────────────────────────────────────
+let sortDir = {};
+function sortTable(col) {
+  const tbody = document.getElementById('table-body');
+  const rows  = Array.from(tbody.querySelectorAll('tr[data-status]'));
+  sortDir[col] = !sortDir[col];
+  rows.sort((a, b) => {
+    const at = a.cells[col]?.textContent.trim() || '';
+    const bt = b.cells[col]?.textContent.trim() || '';
+    return sortDir[col]
+      ? at.localeCompare(bt, undefined, {numeric:true})
+      : bt.localeCompare(at, undefined, {numeric:true});
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+</script>
+{% endblock %}

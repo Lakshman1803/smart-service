@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Service Centers in Andhra Pradesh | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="padding:4rem 0;">
+<div class="container">
+<div style="text-align:center;margin-bottom:3rem;">
+    <h1 class="section-title">Our <span>Service Centers</span></h1>
+    <p style="color:var(--text-muted);">25+ centers across Andhra Pradesh — Open Monday to Saturday, 8 AM – 7 PM</p>
+</div>
+
+<div style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;">
+    <input type="text" id="search-input" placeholder="Search by city or center name..." class="form-control" style="max-width:350px;" oninput="filterCenters(this.value)">
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;" id="city-filters">
+        <button class="btn btn-primary btn-sm" onclick="filterCity('')">All</button>
+        {% for city in cities %}
+        <button class="btn btn-outline btn-sm" onclick="filterCity('{{ city }}')">{{ city }}</button>
+        {% endfor %}
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;" id="centers-grid">
+{% for c in centers %}
+<div class="card center-card" data-city="{{ c.city|lower }}" data-name="{{ c.name|lower }}" style="cursor:pointer;" onclick="window.location='{% url 'center_detail' c.pk %}'">
+<div class="card-body">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;">
+        <div>
+            <div style="font-weight:700;font-size:1.05rem;">{{ c.name }}</div>
+            <div style="color:var(--primary);font-size:0.85rem;font-weight:600;"><i class="fas fa-map-marker-alt"></i> {{ c.city }}, {{ c.district }}</div>
+        </div>
+        <span class="badge badge-success">Open</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;color:var(--text-muted);font-size:0.85rem;">
+        <div><i class="fas fa-map-marker-alt" style="width:16px;"></i> {{ c.address }}</div>
+        <div><i class="fas fa-phone" style="width:16px;"></i> {{ c.phone }}</div>
+        <div><i class="fas fa-clock" style="width:16px;"></i> {{ c.working_hours }}</div>
+        <div><i class="fas fa-calendar" style="width:16px;"></i> {{ c.working_days }}</div>
+    </div>
+    <div style="margin-top:1rem;display:flex;gap:0.5rem;">
+        <a href="{% url 'center_detail' c.pk %}" class="btn btn-primary btn-sm" onclick="event.stopPropagation()">Details</a>
+        <a href="{% url 'book_step1' %}" class="btn btn-outline btn-sm" onclick="event.stopPropagation()">Book Here</a>
+        {% if c.google_maps_link %}<a href="{{ c.google_maps_link }}" target="_blank" class="btn btn-outline btn-sm" onclick="event.stopPropagation()"><i class="fas fa-directions"></i></a>{% endif %}
+    </div>
+</div>
+</div>
+{% empty %}
+<div style="grid-column:span 3;text-align:center;padding:3rem;color:var(--text-muted);">No service centers found.</div>
+{% endfor %}
+</div>
+</div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function filterCenters(val){
+    val=val.toLowerCase();
+    document.querySelectorAll('.center-card').forEach(c=>{
+        const match=c.dataset.city.includes(val)||c.dataset.name.includes(val);
+        c.style.display=match?'':'none';
+    });
+}
+function filterCity(city){
+    document.querySelectorAll('.center-card').forEach(c=>{
+        c.style.display=!city||c.dataset.city===city.toLowerCase()?'':'none';
+    });
+    document.querySelectorAll('#city-filters .btn').forEach(b=>{
+        b.className='btn btn-sm '+(b.textContent.trim()===city||(!city&&b.textContent.trim()==='All')?'btn-primary':'btn-outline');
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,74 @@
+/* SMART REPAIR - Main Stylesheet */
+/* Base styles are in base.html <style> block for performance */
+/* This file adds extra component styles */
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--dark2); }
+::-webkit-scrollbar-thumb { background: rgba(230,57,70,0.4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+/* Custom checkbox/radio */
+input[type="checkbox"], input[type="radio"] {
+    accent-color: var(--primary);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Textarea resize */
+textarea.form-control { resize: vertical; min-height: 80px; }
+
+/* Loading spinner */
+.spinner {
+    width: 24px; height: 24px;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Pulse animation for status indicators */
+.pulse {
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Smooth page transitions */
+.main-content {
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Centers list scrollbar */
+.centers-list::-webkit-scrollbar { width: 4px; }
+.centers-list::-webkit-scrollbar-thumb { background: rgba(230,57,70,0.3); border-radius: 2px; }
+
+/* Print styles */
+@media print {
+    .navbar, footer, .no-print, .btn { display: none !important; }
+    body { background: white !important; color: black !important; }
+    .card { border: 1px solid #ddd !important; box-shadow: none !important; }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .container { padding: 0 1rem; }
+    .card-body { padding: 1rem; }
+    .btn-lg { padding: 10px 20px; font-size: 0.9rem; }
+    h1.section-title { font-size: 1.8rem; }
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="20" fill="#E63946"/>
+  <text x="100" y="100" font-family="Arial" font-size="40" font-weight="bold" 
+        fill="white" text-anchor="middle" dominant-baseline="middle">SR</text>
+  <text x="100" y="145" font-family="Arial" font-size="14" 
+        fill="rgba(255,255,255,0.8)" text-anchor="middle">SMART REPAIR</text>
+</svg>

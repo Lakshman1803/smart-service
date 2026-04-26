@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}{{ center.name }} | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="padding:4rem 0;">
+<div class="container">
+<div style="max-width:900px;margin:0 auto;">
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem;">
+<div>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:0.5rem;">
+    <span class="badge badge-success">Open Mon–Sat</span>
+    <span class="badge badge-secondary">{{ center.district }}, AP</span>
+</div>
+<h1 style="font-size:2.2rem;font-weight:700;margin-bottom:0.5rem;">{{ center.name }}</h1>
+<p style="color:var(--text-muted);">{{ center.address }}, {{ center.city }}, {{ center.district }} – {{ center.pincode }}</p>
+
+<div style="display:flex;flex-direction:column;gap:0.75rem;margin-top:1.5rem;">
+<div class="d-flex align-items-center gap-3"><div style="width:40px;height:40px;background:rgba(230,57,70,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--primary);"><i class="fas fa-phone"></i></div><div><div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;">Phone</div><div style="font-weight:700;">{{ center.phone }}</div></div></div>
+<div class="d-flex align-items-center gap-3"><div style="width:40px;height:40px;background:rgba(230,57,70,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--primary);"><i class="fas fa-clock"></i></div><div><div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;">Hours</div><div style="font-weight:700;">{{ center.working_hours }}</div></div></div>
+<div class="d-flex align-items-center gap-3"><div style="width:40px;height:40px;background:rgba(230,57,70,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--primary);"><i class="fas fa-calendar"></i></div><div><div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;">Days</div><div style="font-weight:700;">{{ center.working_days }}</div></div></div>
+{% if center.manager_name %}<div class="d-flex align-items-center gap-3"><div style="width:40px;height:40px;background:rgba(230,57,70,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--primary);"><i class="fas fa-user-tie"></i></div><div><div style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;">Manager</div><div style="font-weight:700;">{{ center.manager_name }}</div></div></div>{% endif %}
+</div>
+
+<div style="margin-top:1.5rem;display:flex;gap:0.75rem;">
+    <a href="{% url 'book_step1' %}" class="btn btn-primary btn-lg"><i class="fas fa-calendar-plus"></i> Book Here</a>
+    {% if center.google_maps_link %}<a href="{{ center.google_maps_link }}" target="_blank" class="btn btn-outline btn-lg"><i class="fas fa-directions"></i> Directions</a>{% endif %}
+</div>
+</div>
+
+<div style="border-radius:16px;overflow:hidden;border:1px solid var(--border);height:350px;">
+{% if center.latitude and center.longitude %}
+<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2000!2d{{ center.longitude }}!3d{{ center.latitude }}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z{{ center.name }}!5e0!3m2!1sen!2sin!4v1699900000000" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+{% else %}
+<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d243647.83595985944!2d80.88060600000001!3d16.506174!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a35efa11f5fc433%3A0xf2e27c9d1f6b3c35!2s{{ center.city }}%2C%20Andhra%20Pradesh!5e0!3m2!1sen!2sin!4v1699900000000" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+{% endif %}
+</div>
+</div>
+
+<a href="{% url 'service_centers' %}" class="btn btn-outline mt-4"><i class="fas fa-arrow-left"></i> All Centers</a>
+</div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,559 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SMART REPAIR - Premium Vehicle Service Management | Andhra Pradesh{% endblock %}
+
+{% block extra_css %}
+<style>
+/* HERO */
+.hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background: var(--dark);
+}
+.hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url('https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1920&q=80') center/cover no-repeat;
+    filter: brightness(0.2);
+    z-index: 0;
+}
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(13,17,23,0.9) 40%, rgba(230,57,70,0.1) 100%);
+    z-index: 1;
+}
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    width: 100%;
+}
+.hero-tagline {
+    display: inline-block;
+    background: rgba(230,57,70,0.15);
+    border: 1px solid rgba(230,57,70,0.3);
+    color: var(--primary);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+}
+.hero-title {
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+}
+.hero-title span { color: var(--primary); display: block; }
+.hero-desc { color: var(--text-muted); font-size: 1.05rem; line-height: 1.8; margin-bottom: 2.5rem; max-width: 500px; }
+.hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+.hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 3rem; }
+.stat-box { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; text-align: center; }
+.stat-num { font-family: 'Rajdhani', sans-serif; font-size: 2rem; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+/* VEHICLE SHOWCASE */
+.vehicles-showcase {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.vehicle-card {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+.vehicle-card:hover { transform: scale(1.02); }
+.vehicle-card:first-child { grid-column: span 2; aspect-ratio: 16/7; }
+.vehicle-card img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6); transition: filter 0.3s; }
+.vehicle-card:hover img { filter: brightness(0.8); }
+.vehicle-card-label {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+/* SERVICES SECTION */
+.services-section { padding: 5rem 0; background: linear-gradient(180deg, var(--dark) 0%, var(--dark2) 100%); }
+.services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.service-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+.service-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+    transform: scaleX(0);
+    transition: transform 0.3s;
+}
+.service-card:hover { border-color: rgba(230,57,70,0.4); transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+.service-card:hover::before { transform: scaleX(1); }
+.service-icon { width: 64px; height: 64px; background: rgba(230,57,70,0.1); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.75rem; color: var(--primary); margin: 0 auto 1rem; transition: all 0.3s; }
+.service-card:hover .service-icon { background: var(--primary); color: white; }
+.service-name { font-family: 'Rajdhani', sans-serif; font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
+.service-desc { color: var(--text-muted); font-size: 0.825rem; line-height: 1.6; margin-bottom: 1rem; }
+.service-price { color: var(--primary); font-weight: 700; font-size: 1rem; }
+
+/* VEHICLE TYPES */
+.vehicle-types { padding: 5rem 0; background: var(--dark); }
+.vt-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.vt-card {
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 3/4;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+.vt-card:hover { transform: translateY(-8px); }
+.vt-card img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.5); transition: filter 0.3s; }
+.vt-card:hover img { filter: brightness(0.7); }
+.vt-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.5rem; background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 60%); }
+.vt-title { font-family: 'Rajdhani', sans-serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
+.vt-count { color: var(--text-muted); font-size: 0.8rem; }
+
+/* MAP / CENTERS SECTION */
+.centers-section { padding: 5rem 0; background: var(--dark2); }
+.centers-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem; }
+.centers-list { display: flex; flex-direction: column; gap: 0.75rem; max-height: 500px; overflow-y: auto; padding-right: 0.5rem; }
+.center-item {
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+.center-item:hover, .center-item.active { border-color: var(--primary); background: rgba(230,57,70,0.05); }
+.center-item-name { font-weight: 600; font-size: 0.95rem; color: var(--text-light); margin-bottom: 4px; }
+.center-item-info { color: var(--text-muted); font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
+.map-container { border-radius: 16px; overflow: hidden; height: 500px; border: 1px solid var(--border); }
+.map-container iframe { width: 100%; height: 100%; border: none; }
+
+/* HOLIDAY BANNER */
+.holiday-banner {
+    background: linear-gradient(135deg, rgba(244,162,97,0.1), rgba(230,57,70,0.1));
+    border: 1px solid rgba(244,162,97,0.2);
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+}
+.holiday-list { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
+.holiday-tag { background: rgba(244,162,97,0.15); border: 1px solid rgba(244,162,97,0.3); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
+
+/* CTA */
+.cta-section { padding: 5rem 0; background: linear-gradient(135deg, var(--dark), rgba(230,57,70,0.05)); }
+.cta-box { background: linear-gradient(135deg, rgba(230,57,70,0.15), rgba(29,53,87,0.3)); border: 1px solid rgba(230,57,70,0.2); border-radius: 24px; padding: 4rem; text-align: center; }
+.cta-title { font-size: 3rem; font-weight: 700; margin-bottom: 1rem; }
+.cta-subtitle { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2.5rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+/* WHY US */
+.why-us { padding: 5rem 0; }
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+.feature-box { padding: 2rem; border-radius: 16px; background: var(--card-bg); border: 1px solid var(--border); }
+.feature-icon { font-size: 2rem; color: var(--primary); margin-bottom: 1rem; }
+.feature-title { font-family: 'Rajdhani', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.75rem; }
+.feature-desc { color: var(--text-muted); font-size: 0.875rem; line-height: 1.7; }
+
+@media(max-width:768px) {
+    .hero-content { grid-template-columns: 1fr; padding-top: 4rem; }
+    .vehicles-showcase { display: none; }
+    .hero-title { font-size: 2.5rem; }
+    .services-grid, .vt-grid, .features-grid { grid-template-columns: 1fr 1fr; }
+    .centers-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO SECTION -->
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-text">
+            <span class="hero-tagline">🔧 Andhra Pradesh's #1 Service Network</span>
+            <h1 class="hero-title">
+                SMART
+                <span>REPAIR</span>
+                Your Vehicle Deserves The Best
+            </h1>
+            <p class="hero-desc">
+                Premium vehicle service management across Andhra Pradesh. Expert technicians, transparent pricing, real-time tracking — for 2, 3, 4-wheelers & heavy vehicles.
+            </p>
+            <div class="hero-actions">
+                <a href="{% url 'book_step1' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-calendar-plus"></i> Book a Slot
+                </a>
+                <a href="{% url 'track_service' %}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-map-marker-alt"></i> Track Service
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-box">
+                    <div class="stat-num">{{ total_centers }}+</div>
+                    <div class="stat-label">Service Centers</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">50K+</div>
+                    <div class="stat-label">Happy Customers</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">500+</div>
+                    <div class="stat-label">Expert Technicians</div>
+                </div>
+            </div>
+        </div>
+        <div class="vehicles-showcase">
+            <div class="vehicle-card">
+                <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&q=80" alt="Four Wheeler">
+                <div class="vehicle-card-label">🚗 Four Wheelers</div>
+            </div>
+            <div class="vehicle-card">
+                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" alt="Two Wheeler">
+                <div class="vehicle-card-label">🏍️ Two Wheelers</div>
+            </div>
+            <div class="vehicle-card">
+                <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=80" alt="Heavy Vehicle">
+                <div class="vehicle-card-label">🚛 Heavy Vehicles</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- HOLIDAY ALERT -->
+{% if upcoming_holidays %}
+<section style="padding: 1.5rem 0; background: var(--dark2);">
+    <div class="container">
+        <div class="holiday-banner">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h4 style="font-family: Rajdhani; color: var(--accent);">
+                        <i class="fas fa-calendar-times"></i> Upcoming Holidays — Service Centers Closed
+                    </h4>
+                    <div class="holiday-list">
+                        {% for h in upcoming_holidays %}
+                        <span class="holiday-tag">📅 {{ h.name }} — {{ h.date|date:"d M Y" }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <a href="{% url 'holidays' %}" class="btn btn-outline btn-sm">View All Holidays</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- VEHICLE TYPES -->
+<section class="vehicle-types">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">We Service <span>All Vehicles</span></h2>
+            <p class="section-subtitle">From motorcycles to heavy commercial trucks — our certified technicians handle it all</p>
+        </div>
+        <div class="vt-grid">
+            <a href="{% url 'services_list' %}?type=2w" class="vt-card" style="text-decoration:none;color:white">
+                <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" alt="Two Wheeler">
+                <div class="vt-overlay">
+                    <div class="vt-title">🏍️ Two Wheeler</div>
+                    <div class="vt-count">Bikes, Scooters, Mopeds</div>
+                </div>
+            </a>
+            <a href="{% url 'services_list' %}?type=3w" class="vt-card" style="text-decoration:none;color:white">
+                <img src="https://images.unsplash.com/photo-1597635742145-a9f1a65c4ac1?w=400&q=80" alt="Three Wheeler">
+                <div class="vt-overlay">
+                    <div class="vt-title">🛺 Three Wheeler</div>
+                    <div class="vt-count">Auto Rickshaws, E-Rickshaws</div>
+                </div>
+            </a>
+            <a href="{% url 'services_list' %}?type=4w" class="vt-card" style="text-decoration:none;color:white">
+                <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&q=80" alt="Four Wheeler">
+                <div class="vt-overlay">
+                    <div class="vt-title">🚗 Four Wheeler</div>
+                    <div class="vt-count">Cars, SUVs, Vans, Jeeps</div>
+                </div>
+            </a>
+            <a href="{% url 'services_list' %}?type=heavy" class="vt-card" style="text-decoration:none;color:white">
+                <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400&q=80" alt="Heavy Vehicle">
+                <div class="vt-overlay">
+                    <div class="vt-title">🚛 Heavy Vehicle</div>
+                    <div class="vt-count">Trucks, Buses, Tractors</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- SERVICES SECTION -->
+<section class="services-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Our <span>Services</span></h2>
+            <p class="section-subtitle">Comprehensive vehicle care under one roof — from routine maintenance to major repairs</p>
+        </div>
+        <div class="services-grid">
+            <!-- Static services always shown -->
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-oil-can"></i></div>
+                <div class="service-name">Oil & Filter Change</div>
+                <div class="service-desc">Premium grade engine oil with OEM filters for optimal performance</div>
+                <div class="service-price">From ₹499</div>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-car-battery"></i></div>
+                <div class="service-name">Battery Service</div>
+                <div class="service-desc">Battery check, charging, replacement with warranty</div>
+                <div class="service-price">From ₹299</div>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-tire"></i></div>
+                <div class="service-name">Tyre Service</div>
+                <div class="service-desc">Rotation, balancing, alignment, puncture repair & replacement</div>
+                <div class="service-price">From ₹149</div>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="service-name">Brake Service</div>
+                <div class="service-desc">Brake pad, disc, drum inspection and replacement</div>
+                <div class="service-price">From ₹799</div>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-snowflake"></i></div>
+                <div class="service-name">AC Service</div>
+                <div class="service-desc">AC gas refill, compressor check, cooling performance test</div>
+                <div class="service-price">From ₹999</div>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-paint-roller"></i></div>
+                <div class="service-name">Denting & Painting</div>
+                <div class="service-desc">Body repair, panel beating, color matching, full body paint</div>
+                <div class="service-price">From ₹2,499</div>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-cogs"></i></div>
+                <div class="service-name">Engine Overhaul</div>
+                <div class="service-desc">Complete engine diagnostics, reconditioning & tuning</div>
+                <div class="service-price">From ₹4,999</div>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-plug"></i></div>
+                <div class="service-name">Electrical Service</div>
+                <div class="service-desc">Wiring, lights, sensors, ECU diagnostics & repair</div>
+                <div class="service-price">From ₹599</div>
+            </div>
+            {% for service in services %}
+            <div class="service-card">
+                <div class="service-icon"><i class="fas {{ service.icon|default:'fa-wrench' }}"></i></div>
+                <div class="service-name">{{ service.name }}</div>
+                <div class="service-desc">{{ service.description|truncatechars:80 }}</div>
+                <div class="service-price">From ₹{{ service.base_price }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-5">
+            <a href="{% url 'services_list' %}" class="btn btn-outline btn-lg">View All Services <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<!-- WHY CHOOSE US -->
+<section class="why-us">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Why Choose <span>SMART REPAIR</span>?</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-box">
+                <div class="feature-icon"><i class="fas fa-user-shield"></i></div>
+                <div class="feature-title">OTP-Verified Service</div>
+                <div class="feature-desc">Every service begins with a secure OTP verification, ensuring only you authorize your vehicle's work. Complete transparency from start to finish.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon"><i class="fas fa-map-marker-alt"></i></div>
+                <div class="feature-title">Real-Time Tracking</div>
+                <div class="feature-desc">Track your vehicle's service progress in real time. Get instant notifications when work is assigned, in progress, or completed.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon"><i class="fas fa-calendar-check"></i></div>
+                <div class="feature-title">Easy Slot Booking</div>
+                <div class="feature-desc">Book your service slot online or offline at your nearest center. Get reminder SMS one day before your appointment.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon"><i class="fas fa-certificate"></i></div>
+                <div class="feature-title">Certified Technicians</div>
+                <div class="feature-desc">All our mechanics are trained and certified. Manufacturer-approved parts with warranty for every repair.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon"><i class="fas fa-receipt"></i></div>
+                <div class="feature-title">Transparent Billing</div>
+                <div class="feature-desc">Itemized bills with no hidden charges. Accept online UPI payments or cash. Digital receipt sent to your registered mobile.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon"><i class="fas fa-network-wired"></i></div>
+                <div class="feature-title">25+ Centers in AP</div>
+                <div class="feature-desc">Spread across all major cities and districts of Andhra Pradesh — Vijayawada, Visakhapatnam, Guntur, Tirupati and more.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SERVICE CENTERS MAP -->
+<section class="centers-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Our <span>Service Centers</span></h2>
+            <p class="section-subtitle">25+ centers across Andhra Pradesh — find the nearest one to you</p>
+        </div>
+        <div class="centers-grid">
+            <div>
+                <div class="centers-list">
+                    {% for center in service_centers %}
+                    <a href="{% url 'center_detail' center.pk %}" class="center-item">
+                        <div class="center-item-name"><i class="fas fa-map-marker-alt text-primary"></i> {{ center.name }}</div>
+                        <div class="center-item-info">
+                            <span>{{ center.city }}, {{ center.district }}</span>
+                            <span>·</span>
+                            <span>{{ center.phone }}</span>
+                        </div>
+                        <div class="center-item-info mt-1">
+                            <span><i class="fas fa-clock"></i> {{ center.working_hours }}</span>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="center-item">
+                        <div class="center-item-name">Vijayawada Main Center</div>
+                        <div class="center-item-info">MG Road, Vijayawada · +91-9876543210</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'service_centers' %}" class="btn btn-primary w-100">
+                        <i class="fas fa-map"></i> View All {{ total_centers }} Service Centers
+                    </a>
+                </div>
+            </div>
+            <div class="map-container">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d243647.83595985944!2d80.88060600000001!3d16.506174!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a35efa11f5fc433%3A0xf2e27c9d1f6b3c35!2sVijayawada%2C%20Andhra%20Pradesh!5e0!3m2!1sen!2sin!4v1699900000000!5m2!1sen!2sin"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA SECTION -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-box">
+            <h2 class="cta-title">Ready to <span style="color:var(--primary)">Book Your Service</span>?</h2>
+            <p class="cta-subtitle">Choose your nearest center, pick a slot, and let our experts take care of your vehicle. Online & offline booking available.</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="{% url 'book_step1' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-calendar-plus"></i> Book Online Slot
+                </a>
+                <a href="{% url 'service_centers' %}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-directions"></i> Walk-In / Offline
+                </a>
+                <a href="{% url 'track_service' %}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-search"></i> Track My Service
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CONTACT SECTION -->
+<section style="padding: 4rem 0; background: var(--dark2);">
+    <div class="container">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center;">
+            <div>
+                <h2 class="section-title">Contact <span>Us</span></h2>
+                <p style="color:var(--text-muted); margin-bottom:2rem;">Have questions? We're here to help. Reach us anytime.</p>
+                <div style="display:flex;flex-direction:column;gap:1rem;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:48px;height:48px;background:rgba(230,57,70,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:1.2rem;flex-shrink:0;">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:600;">Call Us</div>
+                            <div style="color:var(--text-muted);font-size:0.875rem;">+91-9876543210 | +91-9876543211</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:48px;height:48px;background:rgba(230,57,70,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:1.2rem;flex-shrink:0;">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:600;">Email Us</div>
+                            <div style="color:var(--text-muted);font-size:0.875rem;">info@smartrepair.in | support@smartrepair.in</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:48px;height:48px;background:rgba(230,57,70,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:1.2rem;flex-shrink:0;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:600;">Working Hours</div>
+                            <div style="color:var(--text-muted);font-size:0.875rem;">Monday to Saturday: 8:00 AM – 7:00 PM</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <form method="post" action="{% url 'contact' %}">
+                    {% csrf_token %}
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        <div class="form-group"><label class="form-label">Name</label><input name="name" class="form-control" placeholder="Your name" required></div>
+                        <div class="form-group"><label class="form-label">Mobile</label><input name="mobile" class="form-control" placeholder="10-digit mobile" required></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Subject</label><input name="subject" class="form-control" placeholder="How can we help?" required></div>
+                    <div class="form-group"><label class="form-label">Message</label><textarea name="message" class="form-control" rows="4" placeholder="Describe your issue..." required></textarea></div>
+                    <button type="submit" class="btn btn-primary w-100 btn-lg"><i class="fas fa-paper-plane"></i> Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

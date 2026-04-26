@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Holiday List {{ year }} | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="padding:4rem 0;">
+<div class="container">
+<div style="text-align:center;margin-bottom:3rem;">
+    <h1 class="section-title">Holiday <span>Schedule</span> {{ year }}</h1>
+    <p style="color:var(--text-muted);">All SMART REPAIR service centers are closed on the following dates</p>
+</div>
+<div style="max-width:800px;margin:0 auto;">
+<div style="background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.3);border-radius:12px;padding:1rem 1.5rem;margin-bottom:2rem;display:flex;gap:12px;">
+    <i class="fas fa-info-circle" style="color:var(--accent);margin-top:2px;"></i>
+    <div>
+        <strong>Working Days:</strong> Monday to Saturday, 8:00 AM – 7:00 PM<br>
+        <span style="color:var(--text-muted);font-size:0.875rem;">All centers are closed on Sundays and the holidays listed below. Customers will receive an SMS reminder one day before their scheduled service date.</span>
+    </div>
+</div>
+<div class="card">
+<div class="card-header"><i class="fas fa-calendar-times text-primary"></i> Holidays — {{ year }}</div>
+<div class="card-body" style="padding:0;">
+<table class="table">
+<thead><tr><th>Date</th><th>Day</th><th>Holiday</th><th>Type</th></tr></thead>
+<tbody>
+{% for h in holidays %}
+<tr style="{% if h.date == today %}background:rgba(230,57,70,0.05);{% endif %}">
+    <td><strong style="font-family:monospace;">{{ h.date|date:"d M Y" }}</strong></td>
+    <td style="color:var(--text-muted);">{{ h.date|date:"l" }}</td>
+    <td>
+        {{ h.name }}
+        {% if h.description %}<br><span style="color:var(--text-muted);font-size:0.8rem;">{{ h.description }}</span>{% endif %}
+    </td>
+    <td>
+        {% if h.is_national %}<span class="badge badge-primary">National</span>
+        {% else %}<span class="badge badge-secondary">Regional</span>{% endif %}
+    </td>
+</tr>
+{% empty %}
+<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:3rem;">No holidays listed yet for {{ year }}</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+<div style="margin-top:2rem;text-align:center;">
+    <a href="{% url 'book_step1' %}" class="btn btn-primary btn-lg"><i class="fas fa-calendar-plus"></i> Book a Service Slot</a>
+</div>
+</div>
+</div>
+</div>
+{% endblock %}

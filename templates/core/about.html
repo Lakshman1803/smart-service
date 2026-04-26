@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}About Us | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="padding:4rem 0;">
+<div class="container">
+<div style="text-align:center;margin-bottom:4rem;">
+<h1 class="section-title">About <span>SMART REPAIR</span></h1>
+<p style="color:var(--text-muted);max-width:700px;margin:0 auto;font-size:1.05rem;line-height:1.8;">Andhra Pradesh's most trusted vehicle service network, committed to excellence, transparency, and customer satisfaction since 2015.</p>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;margin-bottom:4rem;">
+<div>
+<h2 style="font-size:2rem;font-weight:700;margin-bottom:1rem;">Our <span style="color:var(--primary);">Mission</span></h2>
+<p style="color:var(--text-muted);line-height:1.8;margin-bottom:1rem;">To provide every vehicle owner in Andhra Pradesh with world-class service through certified technicians, genuine parts, and a fully transparent process — from booking to billing.</p>
+<p style="color:var(--text-muted);line-height:1.8;">We believe vehicle maintenance should be stress-free. Our OTP-verified service acceptance, real-time tracking, and digital receipts ensure you're always in control.</p>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div class="card" style="text-align:center;padding:1.5rem;"><div style="font-family:Rajdhani;font-size:2.5rem;font-weight:700;color:var(--primary);">25+</div><div style="color:var(--text-muted);">Service Centers</div></div>
+    <div class="card" style="text-align:center;padding:1.5rem;"><div style="font-family:Rajdhani;font-size:2.5rem;font-weight:700;color:var(--primary);">500+</div><div style="color:var(--text-muted);">Technicians</div></div>
+    <div class="card" style="text-align:center;padding:1.5rem;"><div style="font-family:Rajdhani;font-size:2.5rem;font-weight:700;color:var(--primary);">50K+</div><div style="color:var(--text-muted);">Customers</div></div>
+    <div class="card" style="text-align:center;padding:1.5rem;"><div style="font-family:Rajdhani;font-size:2.5rem;font-weight:700;color:var(--primary);">9+</div><div style="color:var(--text-muted);">Years Experience</div></div>
+</div>
+</div>
+<div style="text-align:center;margin-top:2rem;">
+    <a href="{% url 'book_step1' %}" class="btn btn-primary btn-lg"><i class="fas fa-calendar-plus"></i> Book a Service</a>
+</div>
+</div>
+</div>
+{% endblock %}

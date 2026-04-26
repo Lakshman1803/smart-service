@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Contact Us | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="padding:4rem 0;">
+<div class="container">
+<div style="text-align:center;margin-bottom:3rem;">
+<h1 class="section-title">Contact <span>Us</span></h1>
+<p style="color:var(--text-muted);">We're here to help. Reach us through any channel below.</p>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:3rem;max-width:1000px;margin:0 auto;">
+<div>
+<div style="display:flex;flex-direction:column;gap:1.25rem;">
+{% for icon, title, val in contact_items %}{% endfor %}
+<div class="card" style="padding:1.25rem;">
+    <div class="d-flex align-items-center gap-3">
+        <div style="width:48px;height:48px;background:rgba(230,57,70,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:1.2rem;"><i class="fas fa-phone"></i></div>
+        <div><div style="font-weight:700;">Call Us</div><div style="color:var(--text-muted);font-size:0.875rem;">+91-9876543210</div><div style="color:var(--text-muted);font-size:0.875rem;">+91-9876543211</div></div>
+    </div>
+</div>
+<div class="card" style="padding:1.25rem;">
+    <div class="d-flex align-items-center gap-3">
+        <div style="width:48px;height:48px;background:rgba(230,57,70,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:1.2rem;"><i class="fas fa-envelope"></i></div>
+        <div><div style="font-weight:700;">Email</div><div style="color:var(--text-muted);font-size:0.875rem;">info@smartrepair.in</div><div style="color:var(--text-muted);font-size:0.875rem;">support@smartrepair.in</div></div>
+    </div>
+</div>
+<div class="card" style="padding:1.25rem;">
+    <div class="d-flex align-items-center gap-3">
+        <div style="width:48px;height:48px;background:rgba(230,57,70,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:1.2rem;"><i class="fas fa-map-marker-alt"></i></div>
+        <div><div style="font-weight:700;">Head Office</div><div style="color:var(--text-muted);font-size:0.875rem;">MG Road, Vijayawada</div><div style="color:var(--text-muted);font-size:0.875rem;">Andhra Pradesh – 520001</div></div>
+    </div>
+</div>
+<div class="card" style="padding:1.25rem;">
+    <div class="d-flex align-items-center gap-3">
+        <div style="width:48px;height:48px;background:rgba(230,57,70,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:1.2rem;"><i class="fas fa-clock"></i></div>
+        <div><div style="font-weight:700;">Working Hours</div><div style="color:var(--text-muted);font-size:0.875rem;">Mon–Sat: 8:00 AM – 7:00 PM</div><div style="color:var(--text-muted);font-size:0.875rem;">Sunday: Closed</div></div>
+    </div>
+</div>
+</div>
+</div>
+<div>
+<div class="card"><div class="card-header"><i class="fas fa-paper-plane text-primary"></i> Send a Message</div>
+<div class="card-body">
+<form method="post">
+{% csrf_token %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+<div class="form-group"><label class="form-label">Your Name *</label><input type="text" name="name" class="form-control" required></div>
+<div class="form-group"><label class="form-label">Mobile *</label><input type="tel" name="mobile" class="form-control" maxlength="10" required></div>
+</div>
+<div class="form-group"><label class="form-label">Email</label><input type="email" name="email" class="form-control"></div>
+<div class="form-group"><label class="form-label">Subject *</label><input type="text" name="subject" class="form-control" required></div>
+<div class="form-group"><label class="form-label">Message *</label><textarea name="message" class="form-control" rows="5" required></textarea></div>
+<button type="submit" class="btn btn-primary w-100 btn-lg"><i class="fas fa-paper-plane"></i> Send Message</button>
+</form>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}My Payments | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="padding:4rem 0;"><div class="container">
+<h1 style="font-size:2rem;font-weight:700;margin-bottom:2rem;">My <span style="color:var(--primary);">Payments</span></h1>
+{% if payments %}
+<div class="card"><div class="card-body" style="padding:0;">
+<table class="table">
+<thead><tr><th>Receipt No.</th><th>Booking</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th><th></th></tr></thead>
+<tbody>
+{% for p in payments %}
+<tr>
+    <td><code style="color:var(--primary);">{{ p.receipt_number }}</code></td>
+    <td><code>{{ p.booking.booking_id }}</code></td>
+    <td style="font-weight:700;">₹{{ p.total_amount }}</td>
+    <td>{{ p.get_payment_method_display }}</td>
+    <td><span class="badge badge-{% if p.payment_status == 'paid' %}success{% else %}warning{% endif %}">{{ p.payment_status|upper }}</span></td>
+    <td>{{ p.paid_at|date:"d M Y"|default:"Pending" }}</td>
+    <td><a href="{% url 'view_receipt' p.pk %}" class="btn btn-primary btn-sm">Receipt</a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div></div>
+{% else %}
+<div style="text-align:center;padding:5rem;color:var(--text-muted);">
+    <i class="fas fa-receipt" style="font-size:3rem;margin-bottom:1rem;display:block;"></i>
+    <p>No payment history yet</p>
+    <a href="{% url 'book_step1' %}" class="btn btn-primary mt-3">Book a Service</a>
+</div>
+{% endif %}
+</div></div>
+{% endblock %}

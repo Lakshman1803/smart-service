@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Track Your Service | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="padding:4rem 0;">
+<div class="container">
+<div style="max-width:700px;margin:0 auto;">
+<div style="text-align:center;margin-bottom:3rem;">
+    <h1 class="section-title">Track Your <span>Service</span></h1>
+    <p style="color:var(--text-muted);">Enter your Booking ID and registered mobile number to track your vehicle's service status</p>
+</div>
+<div class="card mb-4">
+<div class="card-body">
+<form method="post">
+{% csrf_token %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+    <div class="form-group" style="margin:0;">
+        <label class="form-label">Booking ID</label>
+        <input type="text" name="booking_id" class="form-control" placeholder="e.g. SR1A2B3C4D" style="font-family:monospace;text-transform:uppercase;" required>
+    </div>
+    <div class="form-group" style="margin:0;">
+        <label class="form-label">Registered Mobile Number</label>
+        <input type="tel" name="mobile" class="form-control" maxlength="10" placeholder="10-digit mobile" required>
+    </div>
+</div>
+<button type="submit" class="btn btn-primary w-100 btn-lg"><i class="fas fa-search"></i> Track Service</button>
+</form>
+</div>
+</div>
+
+{% if booking %}
+<div class="card" style="border-color:rgba(46,204,113,0.3);">
+<div class="card-header" style="color:var(--success);"><i class="fas fa-map-marker-alt"></i> Service Status Found</div>
+<div class="card-body">
+<div style="text-align:center;margin-bottom:1.5rem;">
+    <code style="font-size:1.3rem;color:var(--primary);">{{ booking.booking_id }}</code>
+    <div style="margin-top:0.5rem;">
+        <span class="badge badge-{% if booking.status == 'completed' %}success{% elif booking.status == 'in_progress' %}info{% elif booking.status == 'cancelled' %}danger{% else %}warning{% endif %}" style="font-size:1rem;padding:8px 20px;">
+            {% if booking.status == 'completed' %}✅ SERVICE COMPLETED
+            {% elif booking.status == 'in_progress' %}🔧 IN SERVICE
+            {% elif booking.status == 'confirmed' %}📋 CONFIRMED - AWAITING SERVICE
+            {% elif booking.status == 'cancelled' %}❌ CANCELLED
+            {% else %}⏳ PENDING{% endif %}
+        </span>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div><div style="color:var(--text-muted);font-size:0.75rem;text-transform:uppercase;">Vehicle</div><div style="font-weight:700;">{{ booking.vehicle.vehicle_number }}</div><div style="color:var(--text-muted);font-size:0.85rem;">{{ booking.vehicle.make }} {{ booking.vehicle.model }}</div></div>
+    <div><div style="color:var(--text-muted);font-size:0.75rem;text-transform:uppercase;">Service Center</div><div style="font-weight:700;">{{ booking.service_center.name }}</div><div style="color:var(--text-muted);font-size:0.85rem;">{{ booking.service_center.city }}</div></div>
+    <div><div style="color:var(--text-muted);font-size:0.75rem;text-transform:uppercase;">Booking Date</div><div style="font-weight:700;">{{ booking.booking_date|date:"d M Y" }}</div></div>
+    <div><div style="color:var(--text-muted);font-size:0.75rem;text-transform:uppercase;">OTP Verified</div><div>{% if booking.otp_verified %}<span class="badge badge-success">✓ Verified</span>{% else %}<span class="badge badge-warning">Not yet</span>{% endif %}</div></div>
+</div>
+
+{% if booking.work_assignments.all %}
+<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
+    <div style="color:var(--text-muted);font-size:0.75rem;text-transform:uppercase;margin-bottom:8px;">Assigned Technicians</div>
+    {% for wa in booking.work_assignments.all %}
+    <div style="display:flex;justify-content:space-between;padding:6px 0;">
+        <span>{{ wa.worker.user.get_full_name }} ({{ wa.worker.get_designation_display }})</span>
+        <span class="badge badge-info">{{ wa.status|upper }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if booking.status == 'completed' and booking.payment %}
+<div style="margin-top:1rem;">
+<a href="{% url 'view_receipt' booking.payment.pk %}" class="btn btn-success w-100"><i class="fas fa-receipt"></i> View Payment Receipt</a>
+</div>
+{% endif %}
+</div>
+</div>
+{% endif %}
+
+</div>
+</div>
+</div>
+{% endblock %}

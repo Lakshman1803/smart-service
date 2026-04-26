@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}My Bookings | SMART REPAIR{% endblock %}
+{% block content %}
+<div style="padding:4rem 0;">
+<div class="container">
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 style="font-size:2rem;font-weight:700;">My <span style="color:var(--primary);">Bookings</span></h1>
+    <a href="{% url 'book_step1' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Booking</a>
+</div>
+
+{% if bookings %}
+<div style="display:flex;flex-direction:column;gap:1rem;">
+{% for b in bookings %}
+<div class="card" style="{% if b.status == 'completed' %}border-color:rgba(46,204,113,0.2);{% elif b.status == 'in_progress' %}border-color:rgba(52,152,219,0.2);{% elif b.status == 'cancelled' %}border-color:rgba(231,76,60,0.2);opacity:0.7;{% endif %}">
+<div class="card-body">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+    <div>
+        <div style="font-family:monospace;color:var(--primary);font-weight:700;font-size:1.1rem;">{{ b.booking_id }}</div>
+        <div style="font-weight:600;margin-top:2px;">{{ b.service_center.name }}</div>
+        <div style="color:var(--text-muted);font-size:0.85rem;">{{ b.booking_date|date:"d M Y" }} · {{ b.vehicle.vehicle_number }}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:1rem;">
+        <span class="badge badge-{% if b.status == 'completed' %}success{% elif b.status == 'in_progress' %}info{% elif b.status == 'cancelled' %}danger{% elif b.status == 'confirmed' %}primary{% else %}warning{% endif %}" style="font-size:0.85rem;padding:6px 14px;">{{ b.status|upper }}</span>
+        <span class="badge badge-secondary">{{ b.booking_type|upper }}</span>
+        <a href="{% url 'booking_detail' b.pk %}" class="btn btn-primary btn-sm">View Details</a>
+    </div>
+</div>
+</div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:5rem 2rem;">
+    <i class="fas fa-calendar-times" style="font-size:4rem;color:var(--text-muted);margin-bottom:1rem;display:block;"></i>
+    <h3 style="color:var(--text-muted);">No bookings yet</h3>
+    <p style="color:var(--text-muted);margin-bottom:2rem;">Book your first vehicle service slot</p>
+    <a href="{% url 'book_step1' %}" class="btn btn-primary btn-lg"><i class="fas fa-calendar-plus"></i> Book a Slot</a>
+</div>
+{% endif %}
+</div>
+</div>
+{% endblock %}

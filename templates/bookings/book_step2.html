@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% block title %}Book Service - Select Issues | SMART REPAIR{% endblock %}
+{% block extra_css %}
+<style>
+.book-page{padding:4rem 0;}
+.step-bar{display:flex;gap:0;margin-bottom:3rem;}
+.step-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;}
+.step-item::after{content:'';position:absolute;left:50%;right:-50%;top:22px;height:2px;background:var(--border);}
+.step-item:last-child::after{display:none;}
+.step-circle{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;z-index:1;border:2px solid var(--border);background:var(--dark2);color:var(--text-muted);}
+.step-item.active .step-circle{background:var(--primary);border-color:var(--primary);color:white;}
+.step-item.done .step-circle{background:var(--success);border-color:var(--success);color:white;}
+.step-label{font-size:0.72rem;color:var(--text-muted);text-align:center;}
+.step-item.active .step-label{color:var(--primary);font-weight:600;}
+.step-item.done .step-label{color:var(--success);}
+
+/* Time slots */
+.slots-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:0.6rem;}
+.slot-btn{padding:0.6rem 0.5rem;border-radius:10px;border:2px solid var(--border);cursor:pointer;text-align:center;transition:all 0.2s;background:var(--card-bg);}
+.slot-btn:hover:not(.full){border-color:var(--primary);}
+.slot-btn.selected{border-color:var(--primary);background:rgba(230,57,70,0.12);}
+.slot-btn.full{opacity:0.4;cursor:not-allowed;background:rgba(255,0,0,0.05);}
+.slot-time{font-weight:700;font-size:0.85rem;}
+.slot-remain{font-size:0.7rem;color:var(--text-muted);margin-top:2px;}
+
+/* Issue cards */
+.cat-header{font-family:Rajdhani;font-size:1rem;font-weight:700;color:var(--accent);padding:0.5rem 0;border-bottom:1px solid var(--border);margin-bottom:0.75rem;margin-top:1.25rem;text-transform:uppercase;letter-spacing:1px;}
+.issue-card{padding:0.75rem 1rem;border-radius:12px;border:2px solid var(--border);cursor:pointer;transition:all 0.2s;background:var(--card-bg);position:relative;}
+.issue-card:hover{border-color:rgba(230,57,70,0.5);}
+.issue-card.selected{border-color:var(--primary);background:rgba(230,57,70,0.08);}
+.issue-card.selected::after{content:'✓';position:absolute;top:6px;right:10px;color:var(--primary);font-weight:900;font-size:1rem;}
+.issue-name{font-weight:600;font-size:0.875rem;margin-bottom:3px;}
+.issue-cost{color:var(--primary);font-weight:700;font-size:0.8rem;}
+.issue-desc{color:var(--text-muted);font-size:0.75rem;margin-top:3px;}
+
+/* Live estimate bar */
+.estimate-bar{position:sticky;bottom:0;background:rgba(13,17,23,0.97);border-top:2px solid rgba(230,57,70,0.3);padding:0.875rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;z-index:100;backdrop-filter:blur(10px);}
+.est-label{color:var(--text-muted);font-size:0.85rem;}
+.est-value{font-family:Rajdhani;font-size:1.4rem;font-weight:700;color:var(--primary);}
+</style>
+{% endblock %}
+{% block content %}
+<div class="book-page"><div class="container"><div style="max-width:960px;margin:0 auto;">
+
+<div class="step-bar">
+  <div class="step-item done"><div class="step-circle"><i class="fas fa-check"></i></div><div class="step-label">Center &amp; Date</div></div>
+  <div class="step-item active"><div class="step-circle">2</div><div class="step-label">Slot &amp; Issues</div></div>
+  <div class="step-item"><div class="step-circle">3</div><div class="step-label">Confirm</div></div>
+</div>
+
+<!-- Booking context strip -->
+<div style="background:rgba(230,57,70,0.05);border:1px solid rgba(230,57,70,0.2);border-radius:12px;padding:0.875rem 1.25rem;margin-bottom:2rem;display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.875rem;">
+  <span><i class="fas fa-building text-primary"></i> <strong>{{ center.name|cut:"SMART REPAIR - " }}</strong>, {{ center.city }}</span>
+  <span><i class="fas fa-calendar text-primary"></i> {{ date }}</span>
+  <span><i class="fas fa-tag text-primary"></i> {{ booking_type|upper }}</span>
+  <span><i class="fas fa-car text-primary"></i> {{ vehicle_type|upper }}</span>
+</div>
+
+<form method="post" action="{% url 'book_step3' %}" id="main-form">
+{% csrf_token %}
+
+<!-- TIME SLOTS -->
+<div class="card mb-4">
+<div class="card-header"><i class="fas fa-clock text-primary"></i> Choose Time Slot
+  <span style="color:var(--text-muted);font-size:0.8rem;font-weight:400;margin-left:8px;">(optional for walk-in)</span>
+</div>
+<div class="card-body">
+{% if slots %}
+<div class="slots-grid">
+{% for slot in slots %}
+<label class="slot-btn {% if slot.is_full %}full{% endif %}" onclick="selectSlot(this,'{{ slot.pk }}')">
+  <input type="radio" name="time_slot" value="{{ slot.pk }}" {% if slot.is_full %}disabled{% endif %} style="display:none;">
+  <div class="slot-time">{{ slot.start_time|time:"g:i A" }}</div>
+  <div class="slot-remain">{% if slot.is_full %}Full{% else %}{{ slot.slots_remaining }} left{% endif %}</div>
+</label>
+{% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:2rem;color:var(--text-muted);">
+  <i class="fas fa-calendar-times" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
+  No time slots available for this date. Walk-in still allowed.
+</div>
+{% endif %}
+</div>
+</div>
+
+<!-- REPAIR ISSUE SELECTION -->
+<div class="card mb-4">
+<div class="card-header">
+  <i class="fas fa-tools text-primary"></i> Select Your Repair Issues
+  <span style="float:right;color:var(--text-muted);font-size:0.8rem;font-weight:400;">Select all that apply — we'll give you a price estimate</span>
+</div>
+<div class="card-body">
+
+{% if categories %}
+{% for cat_name, issue_list in categories.items %}
+<div class="cat-header">{{ cat_name }}</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-bottom:0.5rem;">
+{% for issue in issue_list %}
+<label class="issue-card" onclick="toggleIssue(this, {{ issue.estimated_cost_min }}, {{ issue.estimated_cost_max }})">
+  <input type="checkbox" name="issues" value="{{ issue.pk }}" style="display:none;">
+  <div class="issue-name">{{ issue.name }}</div>
+  <div class="issue-cost">{{ issue.cost_range }}</div>
+  {% if issue.description %}<div class="issue-desc">{{ issue.description|truncatechars:60 }}</div>{% endif %}
+</label>
+{% endfor %}
+</div>
+{% endfor %}
+{% else %}
+<p style="color:var(--text-muted);">No issues configured yet. You can describe your problem below.</p>
+{% endif %}
+
+<div class="form-group mt-3">
+  <label class="form-label"><i class="fas fa-comment-alt"></i> Additional Problem Description</label>
+  <textarea name="issue_notes" class="form-control" rows="3" placeholder="Describe any other issues not listed above..."></textarea>
+</div>
+</div>
+</div>
+
+<!-- VEHICLE -->
+<div class="card mb-4">
+<div class="card-header"><i class="fas fa-car text-primary"></i> Your Vehicle</div>
+<div class="card-body">
+{% if vehicles %}
+<div class="form-group">
+  <label class="form-label">Select Existing Vehicle</label>
+  <select name="vehicle" class="form-control" style="max-width:400px;">
+    <option value="">-- Select vehicle --</option>
+    {% for v in vehicles %}
+    <option value="{{ v.pk }}">{{ v.vehicle_number }} — {{ v.make }} {{ v.model }} ({{ v.year }})</option>
+    {% endfor %}
+  </select>
+</div>
+<p style="color:var(--text-muted);font-size:0.85rem;text-align:center;margin:0.75rem 0;">— OR add new vehicle —</p>
+{% endif %}
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+  <div class="form-group"><label class="form-label">Vehicle Number</label><input type="text" name="new_vehicle" class="form-control" placeholder="AP16AB1234" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"></div>
+  <div class="form-group"><label class="form-label">Make / Brand</label><input type="text" name="new_make" class="form-control" placeholder="Honda, Maruti..."></div>
+  <div class="form-group"><label class="form-label">Model</label><input type="text" name="new_model" class="form-control" placeholder="Activa, Swift..."></div>
+  <div class="form-group"><label class="form-label">Year</label><input type="number" name="new_year" class="form-control" placeholder="2022" min="1990" max="2026"></div>
+  <div class="form-group"><label class="form-label">Fuel Type</label>
+    <select name="new_fuel" class="form-control"><option value="petrol">Petrol</option><option value="diesel">Diesel</option><option value="electric">Electric</option><option value="cng">CNG</option></select>
+  </div>
+</div>
+</div>
+</div>
+
+<div style="display:flex;justify-content:space-between;margin-bottom:5rem;">
+  <a href="{% url 'book_step1' %}" class="btn btn-outline btn-lg"><i class="fas fa-arrow-left"></i> Back</a>
+  <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-arrow-right"></i> Next: Confirm Booking</button>
+</div>
+</form>
+
+<!-- Sticky estimate bar -->
+<div class="estimate-bar" id="est-bar" style="display:none;">
+  <div>
+    <div class="est-label">Selected Issues Cost Estimate</div>
+    <div id="selected-count" style="color:var(--text-muted);font-size:0.8rem;">0 issues selected</div>
+  </div>
+  <div style="text-align:right;">
+    <div class="est-label">Estimated Range</div>
+    <div class="est-value">₹<span id="est-min">0</span> – ₹<span id="est-max">0</span></div>
+  </div>
+  <div style="color:var(--text-muted);font-size:0.75rem;max-width:200px;text-align:right;">Final price after inspection. GST 18% extra.</div>
+</div>
+
+</div></div></div>
+{% endblock %}
+{% block extra_js %}
+<script>
+let selMin = 0, selMax = 0, selCount = 0;
+
+function toggleIssue(el, cMin, cMax) {
+  el.classList.toggle('selected');
+  const checked = el.classList.contains('selected');
+  el.querySelector('input').checked = checked;
+  selMin += checked ? cMin : -cMin;
+  selMax += checked ? cMax : -cMax;
+  selCount += checked ? 1 : -1;
+  updateEstimate();
+}
+
+function updateEstimate() {
+  const bar = document.getElementById('est-bar');
+  bar.style.display = selCount > 0 ? 'flex' : 'none';
+  document.getElementById('est-min').textContent = selMin.toLocaleString('en-IN');
+  document.getElementById('est-max').textContent = selMax.toLocaleString('en-IN');
+  document.getElementById('selected-count').textContent = selCount + ' issue' + (selCount !== 1 ? 's' : '') + ' selected';
+}
+
+function selectSlot(el, id) {
+  document.querySelectorAll('.slot-btn:not(.full)').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+}
+</script>
+{% endblock %}

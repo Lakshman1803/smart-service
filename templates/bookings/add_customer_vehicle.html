@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% block title %}Add Customer Vehicle (Walk-In) | SMART REPAIR{% endblock %}
+{% block extra_css %}
+<style>
+.issue-card{padding:0.75rem;border-radius:10px;border:2px solid var(--border);cursor:pointer;transition:all 0.2s;}
+.issue-card:hover{border-color:rgba(230,57,70,0.4);}
+.issue-card.selected{border-color:var(--primary);background:rgba(230,57,70,0.07);}
+.issue-card.selected .check{display:flex;}
+.check{display:none;width:18px;height:18px;border-radius:50%;background:var(--primary);color:white;font-size:0.6rem;align-items:center;justify-content:center;float:right;margin-top:-2px;}
+.issue-name{font-weight:600;font-size:0.85rem;}
+.issue-range{color:var(--primary);font-size:0.78rem;font-weight:700;}
+.cat-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:0.78rem;transition:all 0.2s;}
+.cat-btn.active{background:var(--primary);border-color:var(--primary);color:white;}
+.vtype-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:0.78rem;transition:all 0.2s;}
+.vtype-btn.active{background:var(--secondary);border-color:var(--secondary);color:white;}
+</style>
+{% endblock %}
+{% block content %}
+<div style="padding:3rem 0;">
+<div class="container">
+<div style="max-width:900px;margin:0 auto;">
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h2 style="font-size:1.8rem;font-weight:700;">Add Customer <span style="color:var(--primary);">Vehicle</span></h2>
+        <p style="color:var(--text-muted);">Walk-in / offline booking — enter details manually</p>
+    </div>
+    <a href="{% url 'employee_dashboard' %}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Dashboard</a>
+</div>
+
+<form method="post">
+{% csrf_token %}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+
+<!-- LEFT col -->
+<div>
+
+<!-- Customer -->
+<div class="card mb-3">
+<div class="card-header"><i class="fas fa-user text-primary"></i> Customer Details</div>
+<div class="card-body">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div class="form-group"><label class="form-label">Customer Name *</label><input type="text" name="customer_name" class="form-control" placeholder="Full name" required></div>
+    <div class="form-group"><label class="form-label">Mobile Number *</label><input type="tel" name="customer_mobile" class="form-control" maxlength="10" placeholder="10-digit mobile" required></div>
+</div>
+</div>
+</div>
+
+<!-- Vehicle -->
+<div class="card mb-3">
+<div class="card-header"><i class="fas fa-car text-primary"></i> Vehicle Details</div>
+<div class="card-body">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div class="form-group"><label class="form-label">Vehicle Number *</label>
+    <input type="text" name="vehicle_number" class="form-control" placeholder="AP16AB1234" style="text-transform:uppercase;font-family:monospace;" oninput="this.value=this.value.toUpperCase()" required></div>
+    <div class="form-group"><label class="form-label">Vehicle Type *</label>
+    <select name="vehicle_type" class="form-control" required id="vtype-select" onchange="filterVtype(this.value)">
+        <option value="">-- Select --</option>
+        <option value="2w">🏍️ Two Wheeler</option>
+        <option value="3w">🛺 Three Wheeler</option>
+        <option value="4w">🚗 Four Wheeler</option>
+        <option value="heavy">🚛 Heavy Vehicle</option>
+    </select></div>
+    <div class="form-group"><label class="form-label">Make / Brand *</label><input type="text" name="make" class="form-control" placeholder="Honda, Maruti, Tata…" required></div>
+    <div class="form-group"><label class="form-label">Model *</label><input type="text" name="model" class="form-control" placeholder="Activa, Swift, Nexon…" required></div>
+    <div class="form-group"><label class="form-label">Year</label><input type="number" name="year" class="form-control" placeholder="2022" min="1990" max="2030" value="2022"></div>
+    <div class="form-group"><label class="form-label">Fuel Type</label>
+    <select name="fuel_type" class="form-control"><option value="petrol">Petrol</option><option value="diesel">Diesel</option><option value="electric">Electric</option><option value="cng">CNG</option></select></div>
+    <div class="form-group"><label class="form-label">KM Reading</label><input type="number" name="current_km" class="form-control" placeholder="25000" value="0"></div>
+</div>
+</div>
+</div>
+
+<!-- Center & services -->
+<div class="card mb-3">
+<div class="card-header"><i class="fas fa-building text-primary"></i> Service Info</div>
+<div class="card-body">
+<div class="form-group"><label class="form-label">Service Center *</label>
+<select name="service_center" class="form-control" required>
+{% for c in centers %}<option value="{{ c.pk }}">{{ c.name }} — {{ c.city }}</option>{% endfor %}
+</select></div>
+<div class="form-group"><label class="form-label">Services (optional)</label>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;max-height:200px;overflow-y:auto;">
+{% for s in services %}
+<label style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:6px;border:1px solid var(--border);cursor:pointer;font-size:0.82rem;">
+    <input type="checkbox" name="services" value="{{ s.pk }}" style="accent-color:var(--primary);">
+    {{ s.name }} — <span style="color:var(--primary);">₹{{ s.base_price }}</span>
+</label>
+{% endfor %}
+</div></div>
+<div class="form-group"><label class="form-label">Problem Description</label>
+<textarea name="problem_description" class="form-control" rows="3" placeholder="Issues reported by customer…"></textarea></div>
+</div>
+</div>
+
+</div><!-- end left col -->
+
+<!-- RIGHT col — issue selection -->
+<div>
+<div class="card" style="position:sticky;top:80px;">
+<div class="card-header"><i class="fas fa-exclamation-triangle" style="color:#f39c12;"></i> Select Customer Issues</div>
+<div class="card-body" style="max-height:75vh;overflow-y:auto;">
+
+<!-- Vehicle type quick filter -->
+<div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.75rem;" id="vtype-btns">
+    <button type="button" class="vtype-btn active" onclick="filterVtype('all',this)">All</button>
+    <button type="button" class="vtype-btn" onclick="filterVtype('2w',this)">🏍️ 2W</button>
+    <button type="button" class="vtype-btn" onclick="filterVtype('3w',this)">🛺 3W</button>
+    <button type="button" class="vtype-btn" onclick="filterVtype('4w',this)">🚗 4W</button>
+    <button type="button" class="vtype-btn" onclick="filterVtype('heavy',this)">🚛 Heavy</button>
+</div>
+
+<!-- Category filter -->
+<div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <button type="button" class="cat-btn active" onclick="filterCat('all',this)">All</button>
+    <button type="button" class="cat-btn" onclick="filterCat('engine',this)">Engine</button>
+    <button type="button" class="cat-btn" onclick="filterCat('brakes',this)">Brakes</button>
+    <button type="button" class="cat-btn" onclick="filterCat('electrical',this)">Electrical</button>
+    <button type="button" class="cat-btn" onclick="filterCat('tyres',this)">Tyres</button>
+    <button type="button" class="cat-btn" onclick="filterCat('ac',this)">AC</button>
+    <button type="button" class="cat-btn" onclick="filterCat('transmission',this)">Transmission</button>
+    <button type="button" class="cat-btn" onclick="filterCat('body',this)">Body</button>
+    <button type="button" class="cat-btn" onclick="filterCat('fuel',this)">Fuel</button>
+    <button type="button" class="cat-btn" onclick="filterCat('service',this)">Service</button>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:6px;" id="issues-list">
+{% for issue in repair_issues %}
+<label class="issue-card" data-vtype="{{ issue.vehicle_type }}" data-cat="{{ issue.category }}" onclick="toggleIssue(this)">
+    <input type="checkbox" name="selected_issues" value="{{ issue.pk }}" style="display:none;">
+    <div class="check"><i class="fas fa-check"></i></div>
+    <div class="issue-name">{{ issue.name }}</div>
+    <div style="color:var(--text-muted);font-size:0.72rem;">{{ issue.get_category_display }}</div>
+    <div class="issue-range">{{ issue.cost_range }}</div>
+</label>
+{% endfor %}
+</div>
+
+<!-- Summary -->
+<div id="issue-summary" style="display:none;margin-top:0.75rem;padding:0.75rem;background:rgba(230,57,70,0.07);border-radius:8px;font-size:0.85rem;">
+    <span style="color:var(--text-muted);">Selected:</span> <strong id="sel-count">0</strong> issues ·
+    <span style="color:var(--primary);font-weight:700;" id="sel-est">₹0</span>
+</div>
+
+</div>
+</div>
+</div><!-- end right col -->
+
+</div><!-- end grid -->
+
+<div style="margin-top:1.5rem;display:flex;gap:1rem;">
+    <a href="{% url 'employee_dashboard' %}" class="btn btn-outline btn-lg"><i class="fas fa-times"></i> Cancel</a>
+    <button type="submit" class="btn btn-primary btn-lg" style="flex:1;"><i class="fas fa-save"></i> Create Walk-In Booking</button>
+</div>
+
+</form>
+</div>
+</div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const issueData = {
+{% for issue in repair_issues %}
+    {{ issue.pk }}: { vtype: '{{ issue.vehicle_type }}', cat: '{{ issue.category }}', minCost: {{ issue.estimated_cost_min }}, maxCost: {{ issue.estimated_cost_max }} },
+{% endfor %}
+};
+const selectedIssues = new Set();
+let currentVtype = 'all', currentCat = 'all';
+
+function toggleIssue(el) {
+    el.classList.toggle('selected');
+    const cb = el.querySelector('input');
+    cb.checked = el.classList.contains('selected');
+    const id = parseInt(cb.value);
+    if (el.classList.contains('selected')) selectedIssues.add(id);
+    else selectedIssues.delete(id);
+    updateSummary();
+}
+
+function updateSummary() {
+    let totalMax = 0;
+    selectedIssues.forEach(id => { if (issueData[id]) totalMax += issueData[id].maxCost; });
+    const sumEl = document.getElementById('issue-summary');
+    document.getElementById('sel-count').textContent = selectedIssues.size;
+    document.getElementById('sel-est').textContent = '₹' + totalMax.toLocaleString('en-IN');
+    sumEl.style.display = selectedIssues.size > 0 ? 'block' : 'none';
+}
+
+function filterVtype(vtype, btn) {
+    currentVtype = vtype;
+    if (btn) {
+        document.querySelectorAll('.vtype-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    applyFilters();
+}
+
+function filterCat(cat, btn) {
+    currentCat = cat;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+}
+
+function applyFilters() {
+    document.querySelectorAll('.issue-card').forEach(card => {
+        const vtMatch = currentVtype === 'all' || card.dataset.vtype === currentVtype || card.dataset.vtype === 'all';
+        const catMatch = currentCat === 'all' || card.dataset.cat === currentCat;
+        card.style.display = (vtMatch && catMatch) ? '' : 'none';
+    });
+}
+
+// Auto-filter when vehicle type is selected in the form
+const vtypeSelect = document.getElementById('vtype-select');
+if (vtypeSelect) {
+    vtypeSelect.addEventListener('change', function() {
+        if (this.value) filterVtype(this.value, null);
+    });
+}
+</script>
+{% endblock %}
